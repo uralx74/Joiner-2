@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config>
+  <input>
+    <dbase4>
+      <file type="dbase4" name="test space\mailbank\in\*.dbf"/>
+    </dbase4>
+  </input>
+  <export>
+    <dbase4 file="test space\mailbank_test\mailbank.dbf">
+      <field name="fio" type="C" length="40" enable="true"/>
+    </dbase4>
+  </export>
+</config>

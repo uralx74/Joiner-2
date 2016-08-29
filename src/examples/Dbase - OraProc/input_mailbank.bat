@@ -1,0 +1,1 @@
+joiner -c="input_mailbank.xml" -l="input_mailbank.log" -a -lr

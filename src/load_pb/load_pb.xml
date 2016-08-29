@@ -1,0 +1,16 @@
+<?xml version="1.0"  encoding="windows-1251"?>
+<config>
+  <import>
+    <excel file="АЭС Инвест точки для загрузки.xlsx"/>
+  </import>
+  <export>
+    <dbase4 file="load_pb.dbf">
+      <field name="CTAC_OSN" type="C" length="11"/>
+      <field name="CTAC_TR" type="C" length="11"/>
+      <field name="CTAC_LEP" type="C" length="11"/>
+      <field name="NAME_PB" type="C" length="60"/>
+      <field name="NAPR" type="N" length="6" decimals="1"/>
+      <field name="FIDER_ID" type="N" length="9" decimals="0"/>
+    </dbase4>
+  </export>
+</config>

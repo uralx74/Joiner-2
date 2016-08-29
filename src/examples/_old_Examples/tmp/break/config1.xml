@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config>
+  <input>
+    <dbase4>
+      <file type="dbase4" name="c:\progrs\current\load2esale\test space\bd63_04.dbf"/>
+      <file type="dbase4" name="c:\progrs\current\load2esale\test space\bd29_04.dbf"/>
+    </dbase4>
+  </input>
+  <export>
+    <db server="10.23.1.13:1521:sn=prodccb">
+      <field name="ACCT_ID" type="C" length="10" active="true"/>
+      <field name="kv" type="C" length="6" active="true"/>
+      <field name="kv_t" type="N" length="9" decimals="0" active="false"/>
+      <field name="s_ed" type="N" length="16" decimals="2" active="true"/>
+    </dbase4>
+  </export>
+</config>

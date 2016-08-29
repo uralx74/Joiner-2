@@ -1,0 +1,11 @@
+<?xml version="1.0"  encoding="windows-1251"?>
+<config>
+  <import>
+    <oratable table="kavabunga" server="10.7.0.10:1521:esale" code="йbяrOЫ.B#&quot;fЧД%e5"/>
+  </import>
+  <export>
+    <excel file="c:\temp\kava.xlsx" truncate="true">
+      <field name="acct_id" name_src="acct_id" format="@"/>
+    </excel>
+  </export>
+</config>

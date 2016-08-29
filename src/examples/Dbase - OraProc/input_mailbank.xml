@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<config>
+  <import>
+      <dbase4 file="s:\CMI\Joiner\input_mailbank\bd*.dbf"/>
+  </import>
+  <export>
+    <oraproc server="10.7.0.10:1521:esale" procedure="PK_ADMIN_EDIT.P_MAILBANK_ADD_ED_new" table="nasel_mailbank" truncate="true" code="йbяrOЫ.B#&quot;fЧД%e5">
+      <field name="p_nsezon" name_src="nsezon"/>
+      <field name="p_summa_e" name_src="summa_e"/>
+      <field name="p_it_e" name_src="it_e"/>
+      <field name="p_it_ep" name_src="it_ep"/>
+      <field name="p_sople" name_src="sople"/>
+      <field name="p_acct_id" name_src="acct_id"/>
+      <field name="p_t_nd" name_src="t_nd"/>
+      <field name="p_t_nn" name_src="t_nn"/>
+      <field name="p_s_dom" name_src="s_dom"/>
+      <field name="p_per_dom" name_src="per_dom"/>
+      <field name="p_dolgdom" name_src="dolgdom"/>
+      <field name="p_sopld" name_src="sopld"/>
+      <field name="p_lastpd" name_src="lastpd"/>
+      <field name="p_lastpn" name_src="lastpn"/>
+      <field name="p_p_nd" name_src="p_nd"/>
+      <field name="p_p_nn" name_src="p_nn"/>
+      <field name="p_dlastp" name_src="dlastp"/>
+      <field name="p_sp_id" name_src="sp_id"/>
+      <field name="p_norm" name_src="norm"/>
+      <field name="p_se1" name_src="se1"/>
+      <field name="p_se3" name_src="se3"/>
+      <field name="p_s_odrn" name_src="s_odrn"/>
+      <field name="p_mes_opl" name_src="mes_opl"/>
+      <field name="p_IT_MP" name_src="IT_MP"/>
+      <field name="p_IT_MD" name_src="IT_MD"/>
+      <field name="p_SOPLT" name_src="SOPLT"/>
+      <field name="p_S_M" name_src="S_M"/>
+      <field name="p_SE2" name_src="SE2"/>
+      <field name="p_raion" name_src="raion"/>
+      <field name="p_nrazrjad" name_src="nrazrjad"/>
+      <field name="p_nschetch" name_src="nschetch"/>
+      <field name="p_nprojiv" name_src="nprojiv"/>
+      <field name="p_nshkal" name_src="nshkal"/>
+      <field name="p_ndolg" name_src="it_ed"/>
+      <!-- Disabled -->
+      <field name="gorod" type="C" length="40" enable="false"/>
+      <field name="poselok" type="C" length="30" enable="false"/>
+      <field name="ul" type="C" length="30" enable="false"/>
+      <field name="dom" type="C" length="4" enable="false"/>
+      <field name="lit" type="C" length="2" enable="false"/>
+      <field name="korp" type="N" length="4" decimals="0" enable="false"/>
+      <field name="kv" type="C" length="6" enable="false"/>
+      <field name="fio" type="C" length="40" enable="false"/>
+      <field name="nnaspunkt" type="C" length="11" enable="false"/>
+      <field name="nulitsaid" type="N" length="12" decimals="0" enable="false"/>
+      <field name="ndomid" type="C" length="10" enable="false"/>
+      <field name="clic_sch" type="C" length="10" active="false" enable="false"/>
+      <field name="ngod" type="N" length="4" decimals="0" active="false" enable="false"/>
+      <field name="nmes" type="N" length="2" decimals="0" active="false" enable="false"/>
+    </oraproc>
+  </export>
+</config>

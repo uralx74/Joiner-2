@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<config>
+  <import>
+    <excel file="Examples\excel\pln_nsl.xlsx"/>
+  </import>
+  <export>
+    <oratable table="kavabunga" server="10.7.0.10:1521:esale" truncate="true">
+      <field name="acct_id" name_src="1"/>
+    </oratable>
+  </export>
+</config>

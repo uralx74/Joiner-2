@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<config>
+  <import>
+    <dbase4 file="test space\mailbank\in\bd23_04.dbf"/>
+    <dbase4 file="test space\mailbank\in\bd26_04.dbf"/>
+    <dbase4 file="test space\mailbank\in\bd28_04.dbf"/>
+    <dbase4 file="test space\mailbank\in\bd29_04.dbf"/>
+    <dbase4 file="test space\mailbank\in\bd32_04.dbf"/>
+    <dbase4 file="test space\mailbank\in\bd36_04.dbf"/>
+    <dbase4 file="test space\mailbank\in\bd38_04.dbf"/>
+    <dbase4 file="test space\mailbank\in\bd60_04.dbf"/>
+    <dbase4 file="test space\mailbank\in\bd61_04.dbf"/>
+    <dbase4 file="test space\mailbank\in\bd62_04.dbf"/>
+    <dbase4 file="test space\mailbank\in\bd63_04.dbf"/>
+  </import>
+  <export>
+    <dbase4 file="test space\mailbank\mailbank.dbf">
+      <field name="it_ed" type="N" length="16" decimals="2"/>
+      <field name="nsezon" type="N" length="2" decimals="0"/>
+      <field name="summa_e" type="N" length="16" decimals="2"/>
+      <field name="it_e" type="N" length="16" decimals="2"/>
+      <field name="it_ep" type="N" length="16" decimals="2"/>
+      <field name="sople" type="N" length="16" decimals="2"/>
+      <field name="acct_id" type="C" length="10"/>
+      <field name="t_nd" type="N" length="16" decimals="3"/>
+      <field name="t_nn" type="N" length="16" decimals="3"/>
+      <field name="s_dom" type="N" length="16" decimals="2"/>
+      <field name="per_dom" type="N" length="16" decimals="2"/>
+      <field name="dolgdom" type="N" length="16" decimals="2"/>
+      <field name="sopld" type="N" length="16" decimals="2"/>
+      <field name="nprojiv" type="N" length="2" decimals="0" enable="false"/>
+      <field name="lastpd" type="N" length="9" decimals="0"/>
+      <field name="lastpn" type="N" length="9" decimals="0"/>
+      <field name="p_nd" type="N" length="9" decimals="0"/>
+      <field name="p_nn" type="N" length="9" decimals="0"/>
+      <field name="dlastp" type="D"/>
+      <field name="nshkal" type="N" length="2" decimals="0" enable="false"/>
+      <field name="nrazrjad" type="N" length="1" decimals="0" enable="false"/>
+      <field name="nschetch" type="C" length="16" enable="false"/>
+      <field name="sp_id" type="C" length="10"/>
+      <field name="norm" type="N" length="6" decimals="2"/>
+      <field name="se1" type="N" length="16" decimals="2"/>
+      <field name="se3" type="N" length="16" decimals="2"/>
+      <field name="s_odrn" type="N" length="16" decimals="2"/>
+      <field name="unikod" type="C" length="14"/>
+      <field name="mes_opl" type="C" length="4"/>
+      <field name="IT_MP" type="N" length="16" decimals="2"/>
+      <field name="IT_MD" type="N" length="16" decimals="2"/>
+      <field name="SOPLT" type="N" length="16" decimals="2"/>
+      <field name="S_M" type="N" length="16" decimals="2"/>
+      <field name="SE2" type="N" length="16" decimals="2"/>
+      <!-- Disabled -->
+      <field name="raion" type="N" length="4" decimals="0" enable="false"/>
+      <field name="gorod" type="C" length="40" enable="false"/>
+      <field name="poselok" type="C" length="30" enable="false"/>
+      <field name="ul" type="C" length="30" enable="false"/>
+      <field name="dom" type="C" length="4" enable="false"/>
+      <field name="lit" type="C" length="2" enable="false"/>
+      <field name="korp" type="N" length="4" decimals="0" enable="false"/>
+      <field name="kv" type="C" length="6" enable="false"/>
+      <field name="fio" type="C" length="40" enable="false"/>
+      <field name="nnaspunkt" type="C" length="11" enable="false"/>
+      <field name="nulitsaid" type="N" length="12" decimals="0" enable="false"/>
+      <field name="ndomid" type="C" length="10" enable="false"/>
+      <field name="clic_sch" type="C" length="10" active="false" enable="false"/>
+      <field name="ngod" type="N" length="4" decimals="0" active="false" enable="false"/>
+      <field name="nmes" type="N" length="2" decimals="0" active="false" enable="false"/>
+    </dbase4>
+  </export>
+</config>

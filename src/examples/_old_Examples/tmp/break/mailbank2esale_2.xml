@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config>
+  <import>
+    <dbase4>
+      <file name="test space\mailbank\mailbank.dbf"/>
+    </dbase4>
+  </import>
+  <export>
+    <oraproc server="10.7.0.10:1521:esale" procedure="pk_nasel_otdel.LoadMailbankProc" table="kavabunga" truncate="true">
+      <field name="acct_id"/>
+      <field name="acct_id" name_src="abonentid" enable="false"/>
+    </oraproc>
+  </export>
+</config>

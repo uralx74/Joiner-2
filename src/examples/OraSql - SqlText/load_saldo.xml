@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<config>
+  <import>
+      <orasql sql="c:\5-ToTextSql\import.sql" server="10.7.0.10:1521:esale" code="йbяrOЫ.B#&quot;fЧД%e5"/>
+  </import>
+  <export>
+    <sqltext template="c:\5-ToTextSql\export.sql" file="c:\5-ToTextSql\result.sql">
+      <field name="dt" name_src="char_val_dttm"/>
+      <field name="test_field" name_src="test_field"/>
+    </sqltext>
+  </export>
+</config>
