@@ -7,16 +7,126 @@
 #include <assert.h>
 
 
+//---------------------------------------------------------------------------
+// TStorage
+// The interface class
+//---------------------------------------------------------------------------
+
+TStorage::TStorage() :
+    TableIndex(0),
+    TableCount(0),
+    FieldCount(0),
+    FieldIndex(0),
+    RecordCount(0),
+    RecordIndex(0),
+    Active(false),
+    ReadOnly(true),
+    Modified(false),
+    templateStorage(NULL),
+    delTemplateStorage(false)
+{
+}
+
+TStorage::~TStorage()
+{
+}
+
+
 void TStorage::registerFactory(String name, TableFactoryBase* factory)
 {
     tableFactories[name] = factory;
 }
 
+bool TStorage::factoryExists(const String& name) const
+{
+    return tableFactories.find(name) != tableFactories.end();
+}
 
+/* Загружает хранилище из файла-xml
+ * node - указывает на корень загружаемого элемента - import или export
+ * переименовать в AddTable
+ */
+void TStorage::loadStorage(const OleXml& oleXml, Variant node, bool readOnly)
+{
+    //AnsiString sss = oleXml.GetNodeName(node);
+
+    if (node.IsEmpty()) {
+        return;
+    }
+
+
+
+
+
+
+
+
+
+ /*   String branchName = oleXml.GetNodeName(node);
+    Variant tableNode = oleXml.GetFirstNode(node);
+
+    while (!tableNode.IsEmpty()) {
+        String storageType = oleXml.GetNodeName(tableNode);
+
+        // Если тип хранилища зарегистрирован
+        if (tableFactories.find(storageType) != tableFactories.end()) {
+            AnsiString attrFile = oleXml.GetAttributeValue(tableNode, "file");
+            ExpandFileNameCustom(attrFile,);
+
+            if (attrFile != "") {
+
+                TSearchRec searchRec;
+                FindFirst(attrFile, faAnyFile, searchRec);
+
+                if (searchRec.Name != "") {
+                    //AnsiString FilePath = ExtractFilePath(Table.File);
+                    do {
+                        //TStorageTable* table = tableFactory->newTable();
+
+                        //table->file = FilePath + SearchRec.Name;
+                        //Tables.push_back(table);
+                    } while ( FindNext(searchRec) == 0);
+
+                } else {
+                    //TStorageTable* table = tableFactory->newTable();
+                    //Tables.push_back(table);
+                }
+            }
+
+
+            //OleXml* newXml = new OleXml();
+            //newXml->CreateRootNode("thisIsRoot");
+            //newXml->Save("c:\\test\\nex.xml");
+            //oleXml.Save("c:\\test\\old.xml");
+
+            return;
+
+
+
+             TableFactoryBase* tableFactory = tableFactories[storageType];
+             TStorageTable* table = tableFactory->newTable();
+
+             //TStorageTable* table = tableFactory->newTable(oleXml, tableNode);
+             //vector<TStorageTable*> loadedTables = tableFactory->loadTables(oleXml, tableNode);
+
+             Tables.push_back(table);
+             //Tables.insert(loadedTables);
+        }
+
+        /*XmlBranch* subBranch = new XmlBranch();
+        branch->branch.insert(BranchType::value_type(subBranchName, subBranch));
+        subBranch = LoadToXmlBranch(subnode);
+        subnode = GetNextNode(subnode);*/
+    /*}
+    //return branch;*/
+}
+
+
+/*
+ */
 void TStorage::loadTables(StorageParameters& storageParameters)
 {
     //storageParameters["file"];
-
 
     if (storageParameters["file"] != "") {
         // Выбираем фабрику для создания таблиц по требуемому типу
@@ -240,28 +350,6 @@ void TStorage::fullCopyFields(TStorage* src, TStorage* dst)
     }*/
 }
 
-
-
-
-//---------------------------------------------------------------------------
-// TStorage
-// The interface class
-//---------------------------------------------------------------------------
-
-TStorage::TStorage()
-{
-    TableIndex = 0;
-    TableCount = 0;
-    FieldCount = 0;
-    FieldIndex = 0;
-    RecordCount = 0;
-    RecordIndex = 0;
-    Active = false;
-    ReadOnly = true;
-    Modified = false;
-    templateStorage = NULL;
-    delTemplateStorage = false;
-}
 
 //---------------------------------------------------------------------------
 // Возвращает true если достигнут конец списка таблиц

@@ -13,14 +13,13 @@ void TStorageTable::open(bool ReadOnly)
 }
 
 //---------------------------------------------------------------------------
-TStorageTable::TStorageTable()
+TStorageTable::TStorageTable() :
+    truncate(false),
+    fieldCount(0),
+    recordCount(0),
+    readOnly(false),
+    modified(false)
 {
-    truncate = false;
-
-    fieldCount = 0;
-    recordCount = 0;
-    readOnly = false;
-    modified = false;
 }
 
 void TStorageTable::setRecordCount(unsigned int _recordCount)

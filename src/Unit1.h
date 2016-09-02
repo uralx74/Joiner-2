@@ -15,7 +15,7 @@
 #include <ExtCtrls.hpp>
 #include <Menus.hpp>
 #include <StdCtrls.hpp>
-#include "c:\PROGRS\current\util\appver.h"
+#include "..\util\appver.h"
 
 
                      

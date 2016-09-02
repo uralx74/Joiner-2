@@ -14,21 +14,18 @@
 #include "CommandLine.h"
 #include "Messages.h"
 #include "Logger.h"
-#include "c:\PROGRS\current\util\appver.h"
+#include "..\util\appver.h"
 #include "TransferModule.h"
 
 USEUNIT("pch.cpp");
 USERES("Joiner.res");
 USEFORM("Unit1.cpp", Form1);
 USEUNIT("..\util\MSExcelWorks.cpp");
-USEUNIT("..\util\MSXMLWorks.cpp");
+USEUNIT("..\util\OleXml.cpp");
 USEUNIT("..\util\CommandLine.cpp");
 USEUNIT("TransferModule.cpp");
 USEUNIT("Storage.cpp");
-//USEUNIT("StorageOra.cpp");
 USEUNIT("StorageDbf.cpp");
-//USEUNIT("StorageText.cpp");
-//USEUNIT("StorageExcel.cpp");
 USEUNIT("Logger.cpp");
 USEUNIT("..\util\VigenereCipher.cpp");
 USEUNIT("..\util\TransposCipher.cpp");

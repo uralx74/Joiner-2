@@ -2,8 +2,8 @@
 #ifndef XML_LOADER_H
 #define XML_LOADER_H
 
-#include "c:\PROGRS\current\util\CommandLine.h"
-#include "c:\PROGRS\current\util\MSXMLWorks.h"
+#include "..\util\CommandLine.h"
+#include "..\util\OleXml.h"
 #include "Storage.h"
 #include "StorageDbf.h"
 //#include "StorageOra.h"
@@ -28,8 +28,6 @@ public:
     /**
     * Loades to XmlBranch
     */
-    //XmlBranch* LoadToXmlBranch(String& xpath);
-
     bool __fastcall LoadParameters();
 
     // Источник и приемник

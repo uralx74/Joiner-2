@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "StorageTable.h"
+#include "..\util\OleXml.h"
 
 //#include <typeinfo>
 
@@ -39,17 +40,19 @@ class TStorage//: public TStorageTable
 {
 public:
     friend TStorageField;
+    TStorage();
+    virtual ~TStorage();
 
     void registerFactory(String name, TableFactoryBase* factory);
-
-
+    bool factoryExists(const String& name) const;
 
     void loadTables(StorageParameters& storageParameters);
+    void loadStorage(const OleXml& oleXml, Variant node, bool readOnly);
     //void loadTables(std::map<String, String>& storageParameters);
 
 
 
-    TStorage();
+
     bool linkSource(TStorage* Storage);
     //bool FindField(AnsiString fieldName);
     TStorageField* findField(AnsiString fieldName);

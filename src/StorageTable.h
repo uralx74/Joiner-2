@@ -10,15 +10,13 @@
 #ifndef STORAGE_TABLE_H
 #define STORAGE_TABLE_H
 
-
 //#include <exception>
 //#include <stdexcept>
 
 class TStorageTable;
 
 
-
-/**
+/*
  * @class TableFactoryBase
  * @note Abstract class of factory
  */
@@ -29,7 +27,7 @@ public:
     virtual TStorageTable* newTable() {};
 };
 
-/**
+/*
  * @class TableFactory
  * @note Defines concrete factory to create concrete "StorageTable"
  */
@@ -64,9 +62,7 @@ public:
     bool required;      // Признак обязательности наличия сопоставленного поля в источнике
     bool linked;
 
-
     close();
-
 
 protected:
     //int FieldType;

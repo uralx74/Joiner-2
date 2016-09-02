@@ -28,22 +28,42 @@ public:
     ~OleXml();
     void __fastcall LoadXMLFile(const AnsiString& XMLFileName);
     void __fastcall LoadXMLText(const AnsiString& XMLText);
+    void __fastcall Save(const String& filename) const;
+
+    Variant __fastcall CreateRootNode(const AnsiString& nodeName);
+    Variant __fastcall CreateNode(Variant parentNode, const AnsiString& nodeName);
+    Variant __fastcall AddChildNode(Variant parentNode, Variant childNode);
+    Variant __fastcall CloneNode(Variant node, bool deep = true);
+
+    Variant __fastcall AddAttributeNode(Variant node, const AnsiString& attributeName, const AnsiString& attributeValue);
+    void __fastcall SetTextNode(Variant node, const AnsiString& nodeText);
+    void __fastcall SetAttributeValue(Variant node, const AnsiString& attributeName, const AnsiString& value);
+
+
+
+
+
+
+
 
     Variant __fastcall GetRootNode() const;
-    AnsiString __fastcall GetNodeName(Variant Node) const;
-    Variant __fastcall GetFirstNode(Variant Node) const;
-    Variant __fastcall GetNextNode(Variant Node) const;
+    AnsiString __fastcall GetNodeName(Variant node) const;
+    Variant __fastcall GetFirstNode(Variant node) const;
+    Variant __fastcall GetNextNode(Variant node) const;
     Variant __fastcall SelectSingleNode(const AnsiString& xpath) const;
 
-    Variant GetAttribute(Variant Node, const AnsiString& AttributeName) const;
-    AnsiString __fastcall GetAttributeText(Variant Node, const AnsiString& AttributeName) const;
-    AnsiString __fastcall GetAttributeValue(Variant Node, int AttributeIndex) const;
-    AnsiString __fastcall GetAttributeValue(Variant Node, const AnsiString& AttributeName, const AnsiString& DefaultValue = "") const;
-    bool __fastcall GetAttributeValue(Variant Node, const AnsiString& AttributeName, bool DefaultValue) const;
-    int __fastcall GetAttributeValue(Variant Node, const AnsiString& AttributeName, int DefaultValue) const;
-    int __fastcall GetAttributesCount(Variant Node) const;
+    AnsiString __fastcall GetNodeText(Variant Node) const;
+    Variant GetAttribute(Variant Node, const AnsiString& attributeName) const;
+    AnsiString __fastcall GetAttributeText(Variant node, const AnsiString& attributeName) const;
+    AnsiString __fastcall GetAttributeValue(Variant node, int attributeIndex) const;
+    AnsiString __fastcall GetAttributeValue(Variant node, const AnsiString& attributeName, const AnsiString& defaultValue = "") const;
+    bool __fastcall GetAttributeValue(Variant node, const AnsiString& attributeName, bool defaultValue) const;
+    int __fastcall GetAttributeValue(Variant node, const AnsiString& attributeName, int defaultValue) const;
+    int __fastcall GetAttributesCount(Variant node) const;
 
     AnsiString __fastcall GetParseError() const;
+    bool __fastcall HasChildNodes(Variant node) const;
+    bool __fastcall IsTextElement(Variant node) const;
 
 
     //Variant __fastcall FindNode(Variant node, AnsiString nodeName);

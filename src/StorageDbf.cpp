@@ -75,9 +75,10 @@ TStorageDbase::copyFieldsToDbf(TStorage* storage)
 
 //---------------------------------------------------------------------------
 //
-TStorageDbase::TStorageDbase()
+TStorageDbase::TStorageDbase() :
+    pTable(NULL)
 {
-    pTable = NULL;
+    //pTable = NULL;
 }
 
 /*TStorageDbase::TStorageDbase(String fileName)

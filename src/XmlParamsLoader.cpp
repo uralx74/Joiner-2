@@ -5,80 +5,23 @@
 #include "XmlParamsLoader.h"
 
 
-
-
-
-/*
-XmlBranch* TXmlLoader::LoadToSingleXmlBranch(MSXMLWorks* msxml, XmlBranch* branch, Variant node)
+namespace utilfiles {
+/* Расширяет путь к файлу FileName из относительного к абсолютному,
+ * используя другой путь FilePath,
+ * но только если путь FileName является относительным
+ * Примечание: В будущем следует перенести в отдельную библиотеку
+ */
+AnsiString ExpandFileNameCustom(AnsiString FileName, AnsiString FilePath)
 {
-    while (!node.IsEmpty()) {
-        String branchName = msxml->GetNodeName(node);
-        XmlBranch* newBranch = branch->branch[branchName] = new XmlBranch();
-
-
-        //LoadToSingleXmlBranch(msxml, newBranch, subnode);
-
-
-        Variant subnode = msxml->GetFirstNode(node);
-
-        if (!subnode.IsEmpty()) {
-            String subBranchName = msxml->GetNodeName(subnode);
-
-            XmlBranch* subBranch = new XmlBranch();
-            newBranch->branch[subBranchName] = subBranch;
-
-            LoadToSingleXmlBranch(msxml, subBranch, subnode);
-        }
-
-        node = msxml->GetNextNode(node);
-
-        //LoadToSingleXmlBranch();
+    AnsiString result = ExpandFileName(FileName);
+    if (UpperCase(result) != UpperCase(Trim(FileName))) {
+        result = ExtractFilePath(FilePath) + Trim(FileName);
+    } else {
+        result = FileName;
     }
-}    */
-
-/*
-XmlBranch* TXmlLoader::LoadToXmlBranch(Variant node)
-{
-    CoInitialize(NULL);
-    MSXMLWorks* msxml = new MSXMLWorks();
-    XmlBranch* branch = LoadToSingleXmlBranch(msxml, node);
-
-    
-
-    /*XmlBranch* root = NULL;// = new XmlBranch();
-    XmlBranch* branch;
-    Variant subnode = node;
-
-    if (!subnode.IsEmpty()) {
-        root = new XmlBranch();
-        branch = root;
-    }*/
-
-
-
-
-
-
-
-    //root->name = msxml->GetNodeName(node);
-
-
-/*    //Variant subnode = msxml->GetFirstNode(node);
-    while (!subnode.IsEmpty()) {
-        XmlBranch* branch = new XmlBranch();
-
-        branch->name = msxml->GetNodeName(subnode);
-
-        //msxml->GetAttributeValue(subnode, "file")
-
-    }     */
-
-/*
-
-    delete msxml;
-
-    return branch;
-} */
+    return result;
+}
+}
 
 //---------------------------------------------------------------------------
 //
@@ -102,17 +45,7 @@ TXmlLoader::~TXmlLoader()
         delete DstStor;
 }
 
-AnsiString TXmlLoader::ExpandFileNameCustom(AnsiString FileName, AnsiString FilePath)
-{
-    AnsiString result = ExpandFileName(FileName);
-    if (UpperCase(result) != UpperCase(Trim(FileName))) {
-        result = ExtractFilePath(FilePath) + Trim(FileName);
-    } else {
-        result = FileName;
-    }
-    return result;
 
-}
 
 //---------------------------------------------------------------------------
 // Загружает параметры из командной строки
@@ -153,62 +86,161 @@ bool __fastcall TXmlLoader::LoadParameters()
     }
 
     CoInitialize(NULL);
-    MsxmlWorks msxml;
+
+    OleXml msxml;
     msxml.LoadXMLFile(clConfig);
+
+    //OleXml newXml;
+    //Variant importNode = newXml.CreateRootNode("import");
+
 
     if (msxml.GetParseError() != "") {
         Logger->WriteLog("Ошибка: " + msxml.GetParseError());
         return false;
     }
 
-
-
-    Variant rootNode = msxml.GetRootNode();
+    //Variant rootNode = msxml.GetRootNode();
     //Variant node = msxml.GetFirstNode(RootNode);
     Variant storageNode;
 
-    //Variant exportNode;
 
-    AnsiString sss = msxml.GetNodeName(rootNode);
 
     if (!VarIsEmpty(rootNode)) {
         storageNode =  msxml.SelectSingleNode("//config/import");
-
-
-
-
-        XmlTreeMultimap* xmlTree = new XmlTreeMultimap(msxml.SelectSingleNode("//config/import"));
-
-
-        BranchIterator branchIt = xmlTree->rootBranch->branch.begin();
-        String sss = branchIt->first;
-        branchIt++;
-        if (branchIt != xmlTree->rootBranch->branch.end()) {
-            sss = branchIt->first;
-        }
-
-        delete xmlTree;
-
-
         if (!VarIsEmpty(storageNode)) {
-            Logger->WriteLog("Разбор параметров импорта", LogLine);
-
+            Logger->WriteLog("Загрузка параметров источника данных...", LogLine);
 
             TStorage* storage = new TStorage();
-
             storage->registerFactory("dbase4", new TableFactory<TStorageDbase>);
-
-
-            //storage->registerFactory("dbase4", new DbfFactory());
-
-
             //storage->registerFactory("excel", new DbfFactory());
             //storage->registerFactory("oraproc", new DbfFactory());
             //storage->registerFactory("orasql", new DbfFactory());
             //storage->registerFactory("text", new DbfFactory());
+            //storage->loadStorage(msxml, storageNode, true);
+
+            //Variant tableNode = msxml.SelectSingleNode("//config/import/table");
+
+            Variant tableNode = msxml.SelectSingleNode("//config/import/table");
+            //while (!tableNode.IsEmpty(); tableNode = msxml.GetNextNode(tableNode) ) {
+            //}
+
+            for ( true ;!tableNode.IsEmpty(); tableNode = msxml.GetNextNode(tableNode) ) {
+                String storageType = msxml.GetAttributeValue(tableNode, "type");
+                if (!storage->factoryExists(storageType)) {
+                    continue;
+                }
+
+                AnsiString filename = msxml.GetAttributeValue(tableNode, "file");
+                if (filename != "") {
+                    AnsiString fullFilename = utilfiles::ExpandFileNameCustom(filename, clConfigPath);
+
+                    TSearchRec searchRec;
+                    FindFirst(fullFilename, faAnyFile, searchRec);
+                    AnsiString filePath = ExtractFilePath(fullFilename);
+
+                    if (searchRec.Name != "") {
+                        do {
+                            //Variant t = msxml.CloneNode(tableNode, false);
+                            msxml.SetAttributeValue(tableNode, "file", filePath + searchRec.Name);
+                            storage->loadStorage(msxml, tableNode, false);
+
+                        //Variant k = newXml.AddChildNode(importNode, t);
+                        //TStorageTable* table = tableFactory->newTable();
+                        //table->file = FilePath + SearchRec.Name;
+                        } while ( FindNext(searchRec) == 0 );
+                    }
+                }
+            }
+        }
+        msxml.Save("c:\\test\\new.xml");
+    }
+}
+
+                //String storageType = msxml.GetNodeName(tableNode);
+
+
+                //tableNode = msxml.GetNextNode(tableNode);
+
+            //Variant tableNode = msxml.GetFirstNode(storageNode);
+
+
+            //String storageType2 = msxml.GetAttributeValue(tableNode, "type");
+
+   /*
+            while (!tableNode.IsEmpty()) {
+                String storageType = oleXml.GetNodeName(tableNode);
+            }
+
+        // Если тип хранилища зарегистрирован
+        if (factoryExists()) {
+            AnsiString attrFile = oleXml.GetAttributeValue(tableNode, "file");
+            ExpandFileNameCustom(attrFile,);
+
+            if (attrFile != "") {
+
+                TSearchRec searchRec;
+                FindFirst(attrFile, faAnyFile, searchRec);
+
+                if (searchRec.Name != "") {
+                    //AnsiString FilePath = ExtractFilePath(Table.File);
+                    do {
+                        //TStorageTable* table = tableFactory->newTable();
+
+                        //table->file = FilePath + SearchRec.Name;
+                        //Tables.push_back(table);
+                    } while ( FindNext(searchRec) == 0);
+
+                } else {
+                    //TStorageTable* table = tableFactory->newTable();
+                    //Tables.push_back(table);
+                }
+            }
+
+
+            //OleXml* newXml = new OleXml();
+            //newXml->CreateRootNode("thisIsRoot");
+            //newXml->Save("c:\\test\\nex.xml");
+            //oleXml.Save("c:\\test\\old.xml");
+
+            return;
 
 
 
+             TableFactoryBase* tableFactory = tableFactories[storageType];
+             TStorageTable* table = tableFactory->newTable();
+
+             //TStorageTable* table = tableFactory->newTable(oleXml, tableNode);
+             //vector<TStorageTable*> loadedTables = tableFactory->loadTables(oleXml, tableNode);
+
+             Tables.push_back(table);
+             //Tables.insert(loadedTables);
+        }
+
+        /*XmlBranch* subBranch = new XmlBranch();
+        branch->branch.insert(BranchType::value_type(subBranchName, subBranch));
+        subBranch = LoadToXmlBranch(subnode);
+        subnode = GetNextNode(subnode);*/
+    
+
+
+
+
+
+
+
+
+
+ /*
+        if (!VarIsEmpty(storageNode)) {
+            Logger->WriteLog("Разбор параметров импорта", LogLine);
+
+            TStorage* storage = new TStorage();
+            storage->registerFactory("dbase4", new TableFactory<TStorageDbase>);
+
+            //TableFactoryBase* tableFactory = tableFactories[storageParameters["type"]];
+
+
+            //storage->registerFactory("dbase4", new DbfFactory());
 
 
             Variant tableNode = msxml.GetFirstNode(storageNode);
@@ -216,21 +248,15 @@ bool __fastcall TXmlLoader::LoadParameters()
             //StorageParameters* storageParameters = new StorageParameters();
 
 
+            String k = msxml.GetAttributeValue(tableNode, "file");
+
             StorageParameters params;
             params["type"] = msxml.GetNodeName(tableNode);
             params["file"] = ExpandFileNameCustom(msxml.GetAttributeValue(tableNode, "file"), clConfigPath);
 
             //storageParameters->type = msxml.GetNodeName(tableNode);
             //storageParameters->file = ExpandFileNameCustom(msxml.GetAttributeValue(tableNode, "file"), clConfigPath);
-
-
             storage->loadTables(params);
-
-
-
-
-
-
         }
 
 
@@ -546,6 +572,6 @@ bool __fastcall TXmlLoader::LoadParameters()
     */
 
 
-}            
+            
 
 
