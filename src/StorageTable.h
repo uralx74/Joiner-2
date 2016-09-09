@@ -10,6 +10,8 @@
 #ifndef STORAGE_TABLE_H
 #define STORAGE_TABLE_H
 
+#include "..\util\OleXml.h"
+
 //#include <exception>
 //#include <stdexcept>
 
@@ -24,7 +26,7 @@ class TStorageTable;
 class TableFactoryBase
 {
 public:
-    virtual TStorageTable* newTable() {};
+    virtual TStorageTable* newTable(const OleXml& oleXml, Variant node) {};
 };
 
 /*
@@ -36,22 +38,22 @@ template <class T>
 class TableFactory : public TableFactoryBase
 {
 public:
-    TStorageTable* newTable();
+    TStorageTable* newTable(const OleXml& oleXml, Variant node);
 };
 
 template <class T>
-TStorageTable* TableFactory<T>::newTable()
+TStorageTable* TableFactory<T>::newTable(const OleXml& oleXml, Variant node)
 {
-    return new T();
+    return new T(oleXml, node);
 }
 
 
-/**
+/*
  * @class TStorageField
  * @note Defines field of table
  */
 
- class TStorageField {
+class TStorageField {
 public:
     bool active;        // ѕризнак необходимости заполненеи€ пол€ (если false, поле создаетс€, но не заполн€етс€)
     bool enable;        // ѕризнак того, необходимо ли вообще учитывать это поле (если false, поле не создаетс€)
@@ -61,8 +63,6 @@ public:
 //private:
     bool required;      // ѕризнак об€зательности наличи€ сопоставленного пол€ в источнике
     bool linked;
-
-    close();
 
 protected:
     //int FieldType;
@@ -85,53 +85,60 @@ typedef std::vector<TStorageField*>::iterator  FieldsIterator;
 class TStorageTable {
 public:
     TStorageTable();
-    bool truncate;
+    virtual ~TStorageTable() {};
 
-    void close();
+    void nextRecord();
+
+    void closeTable();
     void open(bool ReadOnly = true);
     void nextRec();
+    void nextField();
 
 
+    bool isActiveTable() const { return _active; };
     bool isLinkedField();
     bool isActiveField();
     bool linkSource(TStorageTable* SourceTable);
     TStorageField* findField(AnsiString fieldName);
     TStorageField* getField();
-    //TStorageField* addField(TStorageField* Field);
-    TStorageField* addField();
-    void setValue(Variant Value);
 
-    void appendRecord();
+    //TStorageField* addField();
+    TStorageField* addField(TStorageField* field);
+    //TStorageField* addField(const OleXml& oleXml, Variant node);
 
+    Variant getFieldValue(TStorageField* Field) const;
+    void setFieldValue(Variant Value);
 
+    virtual AnsiString getTableName() const = 0;
 
+    void append();
+    bool eof();
+    bool eor();
+    void commit();
+    virtual int nativeGetRecordCount() = 0;
 
 protected:
-    std::vector<TStorageField*> Fields1;
+    void setRecordCount(int recordCount);
+
+    virtual void nativeOpenTable(bool readOnly = true) = 0;
+    virtual void nativeCloseTable() = 0;
+    virtual TStorageField* createField(const OleXml& oleXml, Variant node) = 0;
+    virtual void nativeSetFieldValue(TStorageField* field, Variant Value) = 0;
+    virtual Variant nativeGetFieldValue(const TStorageField* const field) = 0;
+
+    virtual void nativeNextRecord() {};
+    virtual void nativeAppend() {};
+    virtual void nativeCommit() = 0;
+    virtual bool nativeEor() const = 0;
 
     std::vector<TStorageField*> Fields;
     FieldsIterator curField;
+    int _recordCount;
+    bool _truncate;
+    bool _readOnly;
+    bool _modified;
+    bool _active;
 
-    void setRecordCount(unsigned int _recordCount);
-
-
-    virtual void openTable(bool ReadOnly = true) {};
-    virtual void closeTable() {};
-    virtual TStorageField* createField() {};
-    virtual void setFieldValue(TStorageField* field, Variant Value) {};
-
-    virtual void append() {};
-    void nextRecord();
-
-
-    unsigned int fieldCount;
-    unsigned int recordCount;
-
-    bool readOnly;
-    bool modified;
-    bool active;
-
-   
 
 
 };

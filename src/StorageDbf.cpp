@@ -4,16 +4,129 @@
 #include "StorageDbf.h"
 
 
-/*TStorageTable* DbfFactory::newTable()
+/*этот конструктор возможно ненужен*/
+TDbaseField::TDbaseField()
 {
-    return new TStorageDbase();
-    //return new TStorageTable();
-} */
+}
+
+TDbaseField::TDbaseField(const OleXml& oleXml, Variant node)
+{
+    name = LowerCase(oleXml.GetAttributeValue(node, "name"));
+    name_src = LowerCase(oleXml.GetAttributeValue(node, "name_src", name));
+    active = oleXml.GetAttributeValue(node, "active", true);
+    enable = oleXml.GetAttributeValue(node, "enable", true);
+
+    type = LowerCase(oleXml.GetAttributeValue(node, "type", "C"))[1];                 // Тип fieldtype is a single character [C,D,F,L,M,N]
+    length = oleXml.GetAttributeValue(node, "length", 0);   // Длина поля
+    decimals = oleXml.GetAttributeValue(node, "decimals", 0); // Длина десятичной части
+}
+
+/*
+ *
+ *
+ *
+ *
+ *
+ */
+
+/* Возвращает имя таблицы
+ */
+AnsiString TStorageDbase::getTableName() const
+{
+    return _filename;
+    //return pTable->FilePathFull + pTable->TableName;
+}
+
+/*
+ */
+TStorageDbase::TStorageDbase(const OleXml& oleXml, Variant node) :
+    pTable(NULL)
+{
+    _filename = oleXml.GetAttributeValue(node, "file");
+    _truncate = oleXml.GetAttributeValue(node, "truncate", false);
+    _readOnly = oleXml.GetAttributeValue(node, "readonly", true);
 
 
-//---------------------------------------------------------------------------
-// Добавляет новое поле в список полей ()
-// возможно переделать на AddField(TDbaseField* Field)
+
+    // Здесь возможно тоже создавать TStorage и добавлять в него поля ?
+    Variant nodeField = oleXml.SelectSingleNode(node, "field");
+    /*if (!VarIsEmpty(nodeField)) {
+
+        AnsiString name = oleXml.GetAttributeValue(nodeField, "name", "");
+
+
+    }*/
+
+
+    while (!VarIsEmpty(nodeField) && oleXml.GetNodeName(nodeField) == "field") {
+        // Возможно переделать на абстрактную фабрику или др.
+        // а также позаботиться об удалении обьекта
+
+        TStorageField* field = this->createField(oleXml, nodeField);
+        this->addField(field);
+//        TStorageField* dbaseField = this->addField(oleXml, nodeField);
+
+        /*TDbaseField* dbaseField = (TStorageField*)this->addField();
+        if (dbaseField != NULL) {
+            // Создать функцию для установки значений
+            dbaseField->type = LowerCase(msxml.GetAttributeValue(node_fields, "type", "C"))[1];
+            dbaseField->name = LowerCase(msxml.GetAttributeValue(node_fields, "name"));
+            dbaseField->length = msxml.GetAttributeValue(node_fields, "length", 0);
+            dbaseField->decimals = msxml.GetAttributeValue(node_fields, "decimals", 0);
+            dbaseField->active = msxml.GetAttributeValue(node_fields, "active", true);
+            dbaseField->enable = msxml.GetAttributeValue(node_fields, "enable", true);
+            dbaseField->name_src = LowerCase(msxml.GetAttributeValue(node_fields, "name_src", dbaseField->name));
+        }  */
+        //if (dbaseField->name_src == "" )
+        //    dbaseField->name_src = dbaseField->name;
+        nodeField = oleXml.GetNextNode(nodeField);
+    }
+
+
+
+
+
+
+/*                    while (!node_fields.IsEmpty()) {
+                        if (msxml.GetNodeName(node_fields) == "field") {
+                            // Возможно переделать на абстрактную фабрику или др.
+                            // а также позаботиться об удалении обьекта
+                            TDbaseField* dbaseField = StorDbase->addField();
+                            if (dbaseField != NULL) {
+                                // Создать функцию для установки значений
+                                dbaseField->type = LowerCase(msxml.GetAttributeValue(node_fields, "type", "C"))[1];
+                                dbaseField->name = LowerCase(msxml.GetAttributeValue(node_fields, "name"));
+                                dbaseField->length = msxml.GetAttributeValue(node_fields, "length", 0);
+                                dbaseField->decimals = msxml.GetAttributeValue(node_fields, "decimals", 0);
+                                dbaseField->active = msxml.GetAttributeValue(node_fields, "active", true);
+                                dbaseField->enable = msxml.GetAttributeValue(node_fields, "enable", true);
+                                dbaseField->name_src = LowerCase(msxml.GetAttributeValue(node_fields, "name_src", dbaseField->name));
+                            }
+                            //if (dbaseField->name_src == "" )
+                            //    dbaseField->name_src = dbaseField->name;
+                        }
+                        node_fields = msxml.GetNextNode(node_fields);
+                    }
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+    //String xmlTemplate = msxml.GetAttributeValue(subnode, "template", "");
+    //bool xmlSourceAsTemplate = msxml.GetAttributeValue(subnode, "source_as_template", false);
+}
+
+/* Добавляет новое поле в список полей ()
+ * возможно переделать на AddField(TDbaseField* Field)
+ */
 /*TStorageField* TStorageDbase::addField(TStorageField* Field)
 {
     TStorageField* newField = new TDbaseField();
@@ -26,9 +139,10 @@
     this->Fields.push_back(newField);// возможно нужно приводить к  static_cast<TDbaseField*>
     FieldCount++;
     return newField;
-}  */
+}*/
 
-//---------------------------------------------------------------------------
+/*
+ */
 void TStorageDbase::loadFieldDefs()
 {
     if (!pTable) {
@@ -42,18 +156,20 @@ void TStorageDbase::loadFieldDefs()
         TDbaseField* dbaseField = static_cast<TDbaseField*>(this->createField());
 
         dbaseField->type = fieldDef->NativeFieldType;
-        dbaseField->name = fieldDef->FieldName;
+        dbaseField->name = LowerCase(fieldDef->FieldName);
         dbaseField->length = fieldDef->Size;
         dbaseField->decimals = fieldDef->Precision;
         dbaseField->active = true;
         dbaseField->enable = true;
-        dbaseField->name_src = fieldDef->FieldName;
+        dbaseField->name_src = dbaseField->name;
+
+        addField(dbaseField);   // 2016-09-08
     }
 }
 
-//---------------------------------------------------------------------------
-// Копирование полей из источника
-// Используется двойная диспетчеризация
+/* Копирование полей из источника
+ * Используется двойная диспетчеризация
+ */
 TStorageDbase::copyFieldsFrom(TStorage* storage)
 {
     // В зависимости от типа storage (производного от TStorage), вызывается метод CopyFieldsToDbf
@@ -61,25 +177,14 @@ TStorageDbase::copyFieldsFrom(TStorage* storage)
 }
 
 
-//---------------------------------------------------------------------------
-// Полное копирование полей из DBF в DBF
+/* Полное копирование полей из DBF в DBF
+ */
 TStorageDbase::copyFieldsToDbf(TStorage* storage)
 {
     //TStorage::fullCopyFields(this, storage);
 }
 
 
-//---------------------------------------------------------------------------
-//  TStorageDbase
-//---------------------------------------------------------------------------
-
-//---------------------------------------------------------------------------
-//
-TStorageDbase::TStorageDbase() :
-    pTable(NULL)
-{
-    //pTable = NULL;
-}
 
 /*TStorageDbase::TStorageDbase(String fileName)
 {
@@ -92,11 +197,16 @@ TStorageDbase::TStorageDbase() :
 
 
 
+/* проверить необходимость создания поля без загрузки из xml*/
 TStorageField* TStorageDbase::createField()
 {
     return new TDbaseField();
 }
 
+TStorageField* TStorageDbase::createField(const OleXml& oleXml, Variant node)
+{
+    return new TDbaseField(oleXml, node);
+}
 
 
 
@@ -161,50 +271,50 @@ void TStorageDbase::AddField(const TDbaseField* Field)
     //TableCount++;
 }*/
 
-//---------------------------------------------------------------------------
-// Открытие таблицы
-void TStorageDbase::openTable(bool ReadOnly)
+/* Открытие таблицы
+ */
+void TStorageDbase::nativeOpenTable(bool readOnly)
 {
     //this->ReadOnly = ReadOnly;
     //if (Tables.size() <= TableIndex) {
     //    throw Exception("The table with index \"" + IntToStr(TableIndex) + "\" doesn't exists.");
     //}
 
-    if (ReadOnly) {
+    if (readOnly) {
         pTable = new TDbf(NULL);
 
-        pTable->TableName = File;
+        pTable->TableName = _filename;
         pTable->Exclusive = true;
 
-        if (FileExists(File)) {
+        if (FileExists(_filename)) {
             try {
                 pTable->Open();
                 //RecordCount = pTable->RecordCount;
             } catch (...) {
-                throw Exception("Can't to open file  " + File + ".");
+                throw Exception("Can't to open file  " + _filename + ".");
             }
         } else {
-            throw Exception("File not found " + File + ".");
+            throw Exception("File not found " + _filename + ".");
         }
+        loadFieldDefs();
     } else {
         create();
     }
-
-    //return true;
 }
 
 //---------------------------------------------------------------------------
 //
 void TStorageDbase::create()
 {
+    int sss = Fields.size();
     pTable = new TDbf(NULL);
 
     //pTableDst->TableLevel = 7; // required for AutoInc field
     pTable->TableLevel = 4;
     pTable->LanguageID = DbfLangId_RUS_866;
 
-    pTable->TableName = ExtractFileName(File);
-    pTable->FilePathFull = ExtractFilePath(File);
+    pTable->TableName = ExtractFileName(_filename);
+    pTable->FilePathFull = ExtractFilePath(_filename);
 
     // Создаем определение полей таблицы из параметров
     TDbfFieldDefs* TempFieldDefs;
@@ -214,8 +324,8 @@ void TStorageDbase::create()
         throw Exception("Can't create storage.");
     }
 
- /*
-    // Копирование полей из шаблона, если он задан
+
+/*    // Копирование полей из шаблона, если он задан
     if (templateStorage) {
         templateStorage->openTable();
         templateStorage->loadFieldDefs();
@@ -226,8 +336,7 @@ void TStorageDbase::create()
         if (delTemplateStorage) {
             delete templateStorage;
         }
-    }
-
+    } */
 
 
 
@@ -255,10 +364,13 @@ void TStorageDbase::create()
     pTable->Exclusive = true;
     try {
         pTable->Open();
+        //pTable->Append();
+        //pTable->FieldByName("filename")->Value = "value";
+        //pTable->Post();
     } catch (...) {
     }
 
-    FieldCount = Fields.size();   */
+    //FieldCount = Fields.size();   /**/
 }
 
 
@@ -275,9 +387,9 @@ void TStorageDbase::setFieldDefs(std::vector<TStorageField>)
 {
 }
 
-//---------------------------------------------------------------------------
-// Возвращает значение поля
-Variant TStorageDbase::getFieldValue(TStorageField* Field)
+/* Возвращает значение поля
+*/
+Variant TStorageDbase::nativeGetFieldValue(const TStorageField* const Field)
 {
     // Возможно Переделать?????? Field[FieldIndex].name
     //if ()
@@ -288,48 +400,46 @@ Variant TStorageDbase::getFieldValue(TStorageField* Field)
     }
 }
 
-//---------------------------------------------------------------------------
-// Устанавливает значение активного поля
-void TStorageDbase::setFieldValue(TStorageField* field, Variant value)
+/* Устанавливает значение активного поля
+*/
+void TStorageDbase::nativeSetFieldValue(TStorageField* field, Variant value)
 {
+    //bool s = VarIsNull(value);
+    //AnsiString ss = (AnsiString)value;
+
     if (/*!VarIsEmpty(Value) &&*/ !VarIsNull(value) && (AnsiString)value != "") {
-        //if (/*!VarIsEmpty(Value) && !VarIsNull(Value) &&*/ (AnsiString)Value != "")
                 // (AnsiString)Value != "" - Эта проверка критична,
                 // так как в DBF исключено значение NULL
             pTable->FieldByName(field->name)->Value = value;
     }
 }
 
-//---------------------------------------------------------------------------
-// Фиксирует изменения
-void TStorageDbase::commit()
+/* Фиксирует изменения
+*/
+void TStorageDbase::nativeCommit()
 {
-    /*if (ReadOnly) {
-        throw Exception("Can't commit the storage because it is read-only.");
-    }*/
-
     if (pTable->Modified) {
-        try {
-            pTable->Post();
-            modified = true;
-            //recordCount = pTable->RecordCount;
-        } catch (...) {
-            throw;
-        }
+        pTable->Post();
     }
-    //pTable->Post();
 }
 
-//---------------------------------------------------------------------------
-// Добавляет новую запись в таблицу
-void TStorageDbase::append()
+/* Возвращает количество записей в таблице
+*/
+int TStorageDbase::nativeGetRecordCount()
+{
+    return pTable->RecordCount;
+}
+
+/* Добавляет новую запись в таблицу
+*/
+void TStorageDbase::nativeAppend()
 {
     pTable->Append();
 }
 
-//---------------------------------------------------------------------------
-// Закрывает таблицу
-void TStorageDbase::closeTable()
+/* Закрывает таблицу
+*/
+void TStorageDbase::nativeCloseTable()
 {
     if (pTable != NULL) {
         pTable->Close();
@@ -338,15 +448,15 @@ void TStorageDbase::closeTable()
     }
 }
 
-//---------------------------------------------------------------------------
-// Возвращает true если достигнут конец таблицы
+/* Возвращает true если достигнут конец таблицы
+*/
 bool TStorageDbase::eor()
 {
     return pTable->Eof;
 }
 
-//---------------------------------------------------------------------------
-// Возвращает true если достигнута последняя запись
+/* Возвращает true если достигнута последняя запись
+*/
 //bool TStorageDbase::Eof()
 //{
 //    return FieldIndex + 1 == Fields.size();
@@ -369,18 +479,18 @@ bool TStorageDbase::eor()
 
 //---------------------------------------------------------------------------
 // Переходит к следующей записи таблицы
-void TStorageDbase::nextRecord()
+void TStorageDbase::nativeNextRecord()
 {
-    try {
+    //try {
         pTable->Next();
-    } catch (...) {
-    }
+    //} catch (...) {
+    //}
 }
 
-//---------------------------------------------------------------------------
-// Возвращает наименование активного источника/приемника данных
-AnsiString TStorageDbase::getTable()
+
+bool TStorageDbase::nativeEor() const
 {
-    return File;
+    return pTable->Eof;
 }
+
 

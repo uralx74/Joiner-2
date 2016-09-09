@@ -51,6 +51,7 @@ public:
     Variant __fastcall GetFirstNode(Variant node) const;
     Variant __fastcall GetNextNode(Variant node) const;
     Variant __fastcall SelectSingleNode(const AnsiString& xpath) const;
+    Variant __fastcall SelectSingleNode(Variant node, const AnsiString& xpath) const;
 
     AnsiString __fastcall GetNodeText(Variant Node) const;
     Variant GetAttribute(Variant Node, const AnsiString& attributeName) const;

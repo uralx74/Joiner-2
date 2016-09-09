@@ -16,23 +16,36 @@
 //---------------------------------------------------------------------------
 class TXmlLoader
 {
-private:	// User declarations
+private:
     AnsiString ExpandFileNameCustom(AnsiString FileName, AnsiString FilePath);
     TCommandLine* CommandLine;
     TLogger* Logger;
+
+
+    TStorage* ProceedStorageNode(const OleXml& msxml, const AnsiString& nodeXpath);
+
+    /* Параметры командной строки */
+    AnsiString clConfig;    // Путь к файлу конфигурации
+    AnsiString clConfigPath;    // Путь к файлу конфигурации
+    AnsiString clSrcUsername;  // Имя пользователя базы данных
+    AnsiString clSrcPassword;  // Пароль к базе данных
+    AnsiString clDstUsername;  // Имя пользователя базы данных
+    AnsiString clDstPassword;  // Пароль к базе данных
 
 public:
     TXmlLoader();
     ~TXmlLoader();
 
-    /**
-    * Loades to XmlBranch
-    */
+    /*
+     * Loades to XmlBranch
+     */
     bool __fastcall LoadParameters();
 
     // Источник и приемник
     TStorage* SrcStor;
     TStorage* DstStor;
+
+
 
 };
 

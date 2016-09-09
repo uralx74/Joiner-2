@@ -25,12 +25,19 @@ TStorage::TStorage() :
     templateStorage(NULL),
     delTemplateStorage(false)
 {
+    Tables.reserve(10);
+    curTable = Tables.begin(); // при изменении размера Tables мен€ть указатель
 }
 
 TStorage::~TStorage()
 {
 }
 
+int TStorage::getRecordCount()
+{
+    //return RecordCount;
+    return (*curTable)->nativeGetRecordCount();
+}
 
 void TStorage::registerFactory(String name, TableFactoryBase* factory)
 {
@@ -43,163 +50,31 @@ bool TStorage::factoryExists(const String& name) const
 }
 
 /* «агружает хранилище из файла-xml
- * node - указывает на корень загружаемого элемента - import или export
+ * node - указывает таблицу
  * переименовать в AddTable
  */
 void TStorage::loadStorage(const OleXml& oleXml, Variant node, bool readOnly)
 {
-    //AnsiString sss = oleXml.GetNodeName(node);
-
+    //AnsiString nodeName = oleXml.GetNodeName(node);
     if (node.IsEmpty()) {
         return;
     }
 
+    String storageType = oleXml.GetAttributeValue(node, "type");
 
+    // ≈сли тип хранилища зарегистрирован
+    if (tableFactories.find(storageType) != tableFactories.end()) {
+        AnsiString attrFile = oleXml.GetAttributeValue(node, "file");
 
+        TableFactoryBase* tableFactory = tableFactories[storageType];
+        TStorageTable* table = tableFactory->newTable(oleXml, node);
 
-
-
-
-
-
- /*   String branchName = oleXml.GetNodeName(node);
-    Variant tableNode = oleXml.GetFirstNode(node);
-
-    while (!tableNode.IsEmpty()) {
-        String storageType = oleXml.GetNodeName(tableNode);
-
-        // ≈сли тип хранилища зарегистрирован
-        if (tableFactories.find(storageType) != tableFactories.end()) {
-            AnsiString attrFile = oleXml.GetAttributeValue(tableNode, "file");
-            ExpandFileNameCustom(attrFile,);
-
-            if (attrFile != "") {
-
-                TSearchRec searchRec;
-                FindFirst(attrFile, faAnyFile, searchRec);
-
-                if (searchRec.Name != "") {
-                    //AnsiString FilePath = ExtractFilePath(Table.File);
-                    do {
-                        //TStorageTable* table = tableFactory->newTable();
-
-                        //table->file = FilePath + SearchRec.Name;
-                        //Tables.push_back(table);
-                    } while ( FindNext(searchRec) == 0);
-
-                } else {
-                    //TStorageTable* table = tableFactory->newTable();
-                    //Tables.push_back(table);
-                }
-            }
-
-
-            //OleXml* newXml = new OleXml();
-            //newXml->CreateRootNode("thisIsRoot");
-            //newXml->Save("c:\\test\\nex.xml");
-            //oleXml.Save("c:\\test\\old.xml");
-
-            return;
-
-
-
-             TableFactoryBase* tableFactory = tableFactories[storageType];
-             TStorageTable* table = tableFactory->newTable();
-
-             //TStorageTable* table = tableFactory->newTable(oleXml, tableNode);
-             //vector<TStorageTable*> loadedTables = tableFactory->loadTables(oleXml, tableNode);
-
-             Tables.push_back(table);
-             //Tables.insert(loadedTables);
-        }
-
-        /*XmlBranch* subBranch = new XmlBranch();
-        branch->branch.insert(BranchType::value_type(subBranchName, subBranch));
-        subBranch = LoadToXmlBranch(subnode);
-        subnode = GetNextNode(subnode);*/
-    /*}
-    //return branch;*/
+        Tables.push_back(table);
+    }
 }
 
-
-/*
- */
-void TStorage::loadTables(StorageParameters& storageParameters)
-{
-    //storageParameters["file"];
-
-    if (storageParameters["file"] != "") {
-        // ¬ыбираем фабрику дл€ создани€ таблиц по требуемому типу
-        TableFactoryBase* tableFactory = tableFactories[storageParameters["type"]];
-        if (tableFactory == NULL) {
-            throw Exception("Storage type \"" + storageParameters["type"] + "\" doesn't registered.");
-        }
-
-        TSearchRec SearchRec;
-        FindFirst(storageParameters["file"], faAnyFile, SearchRec);
-
-        if (SearchRec.Name != "") {
-            //AnsiString FilePath = ExtractFilePath(Table.File);
-            do {
-                TStorageTable* table = tableFactory->newTable();
-
-                //table->file = FilePath + SearchRec.Name;
-                Tables.push_back(table);
-            } while ( FindNext(SearchRec) == 0);
-        } else {
-            TStorageTable* table = tableFactory->newTable();
-            Tables.push_back(table);
-
-        }
-        FindClose(SearchRec);
-    }
-
-    TableCount = Tables.size();
-}
-
-
-//
-/*
-void TStorage::loadTables(StorageParameters* storageParameters)
-{
-    if (storageParameters->file != "") {
-        // ¬ыбираем фабрику дл€ создани€ таблиц по требуемому типу
-        TableFactory* tableFactory = tableFactories[storageParameters->type];
-        if (tableFactory == NULL) {
-            throw Exception("Storage type \"" + storageParameters->type + "\" doesn't registered.");
-        }
-
-        TSearchRec SearchRec;
-        FindFirst(storageParameters->file, faAnyFile, SearchRec);
-
-        if (SearchRec.Name != "") {
-            //AnsiString FilePath = ExtractFilePath(Table.File);
-            do {
-                TStorageTable* table = tableFactory->newTable();
-
-                //table->file = FilePath + SearchRec.Name;
-                Tables.push_back(table);
-            } while ( FindNext(SearchRec) == 0);
-        } else {
-            TStorageTable* table = tableFactory->newTable();
-            Tables.push_back(table);
-
-        }
-        FindClose(SearchRec);
-    }
-
-    TableCount = Tables.size();
-}  */
-
-
-
-
-
-
-
-
-//---------------------------------------------------------------------------
-// «акрытие хранилища
+/* «акрытие хранилища
+*/
 void TStorage::closeTable()
 {
    /* std::vector<String>::size_type n = Fields.size();
@@ -208,7 +83,7 @@ void TStorage::closeTable()
     }
     Fields.clear(); */
 
-    (*curTable)->close();
+    (*curTable)->closeTable();
 
     FieldIndex = 0;
     FieldCount = 0;
@@ -217,12 +92,47 @@ void TStorage::closeTable()
     Active = false;
 }
 
+AnsiString TStorage::getTable()
+{
+    return (*curTable)->getTableName();
+}
+
+/*
+*/
+bool TStorage::eor()
+{
+    return (*curTable)->eor();
+}
+
+//---------------------------------------------------------------------------
+// ¬озвращает true если достигнут конец списка полей
+bool TStorage::eof()
+{
+    return (*curTable)->eof();
+}
+
+void TStorage::commit()
+{
+    (*curTable)->commit();
+}
+
+Variant TStorage::getFieldValue(TStorageField* Field) const
+{
+    return (*curTable)->getFieldValue(Field);
+}
+
+void TStorage::setFieldValue(Variant Value)
+{
+    (*curTable)->setFieldValue(Value);
+}
+
 //---------------------------------------------------------------------------
 // ƒобавление пустой записи
 void TStorage::append()
 {
-    RecordCount++;
-    FieldIndex = 0;
+    //RecordCount++;
+    //FieldIndex = 0;
+    (*curTable)->append();
 }
 
 //---------------------------------------------------------------------------
@@ -272,6 +182,15 @@ TStorageField* TStorage::findField(AnsiString fieldName)
     return (*curTable)->findField(fieldName);
 }
 
+
+//---------------------------------------------------------------------------
+// ¬озвращает true - если поле поле подлежит записи
+bool TStorage::isActiveField()
+{
+    return (*curTable)->isActiveField();
+    //return Fields[FieldIndex]->active && Fields[FieldIndex]->enable;
+}
+
 /*//---------------------------------------------------------------------------
 //
 bool TStorage::FindField(AnsiString fieldName)
@@ -295,15 +214,6 @@ TStorageField* TStorage::getField()
     return (*curTable)->getField();
     //return Fields[FieldIndex]->name_src;
 }
-
-//---------------------------------------------------------------------------
-// ¬озвращает true - если поле поле подлежит записи
-bool TStorage::isActiveField()
-{
-    return (*curTable)->isActiveField();
-    //return Fields[FieldIndex]->active && Fields[FieldIndex]->enable;
-}
-
 
 //---------------------------------------------------------------------------
 // «адает templateStorage в качестве источника структуры
@@ -355,15 +265,14 @@ void TStorage::fullCopyFields(TStorage* src, TStorage* dst)
 // ¬озвращает true если достигнут конец списка таблиц
 bool TStorage::eot()
 {
-    return TableIndex >= TableCount;
+    return curTable == Tables.end();
 }
 
-//---------------------------------------------------------------------------
-// ¬озвращает true если достигнут конец списка полей
-bool TStorage::eof()
+
+void TStorage::openTable(bool ReadOnly)
 {
-    return FieldIndex  >= FieldCount;
-}
+    (*curTable)->open(ReadOnly);
+};
 
 //---------------------------------------------------------------------------
 // ѕереходит к следующей таблице
@@ -376,9 +285,11 @@ void TStorage::nextTable()
     }
 
     if (!eot()) {
-        TableIndex ++;
-        FieldIndex = 0;
-        RecordIndex = 0;    // 2016-08-08
+
+        curTable++;
+        //TableIndex ++;
+        //FieldIndex = 0;
+        //RecordIndex = 0;    // 2016-08-08
     } else {
         throw Exception("");
     }
@@ -392,19 +303,15 @@ void TStorage::nextTable()
 // ѕереходит к следующей записи таблицы
 void TStorage::nextRecord()
 {
-    if (!eor()) {
-        FieldIndex = 0;
-        RecordIndex++;
-    }
+    (*curTable)->nextRecord();
 }
+
 
 //---------------------------------------------------------------------------
 // ѕереходит к следующему полю таблицы
 void TStorage::nextField()
 {
-    if (!eof()) {
-        FieldIndex++;
-    }
+    (*curTable)->nextField();
 }
 
 //---------------------------------------------------------------------------

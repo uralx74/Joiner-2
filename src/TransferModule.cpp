@@ -38,8 +38,10 @@ void __fastcall TTransferModule::Start()
     delete pXmlLoader;
 }
 
-//---------------------------------------------------------------------------
-//
+/* Копирует данные из хранилища - источника в приемник
+   В цикле перебирает по порядку таблцы, поля, записи и копирует поячеечно
+   данные в приемник.
+*/
 void __fastcall TTransferModule::Transfer(TStorage* Src, TStorage* Dst)
 {
     if (!Src || !Dst) {
@@ -68,6 +70,7 @@ void __fastcall TTransferModule::Transfer(TStorage* Src, TStorage* Dst)
 
 
 
+   Dst->eot();
     //!!!!!!!!!!!!!!!!!!!!!!!!!!
     /*Sleep(1000);
     if (_IsCancel) {
@@ -78,6 +81,8 @@ void __fastcall TTransferModule::Transfer(TStorage* Src, TStorage* Dst)
     while(!Src->eot()) { // Цикл по таблицам
         try {
             log_n = Logger->WriteLog("Открытие источника >");
+
+            //int k = Src->getTableCount();
             Src->openTable(true);   // Открываем источник
             Logger->WriteLog("Источник открыт успешно.", log_n);
         } catch (Exception &e) {    // если ошибка, переходим на следующую таблицу
@@ -124,6 +129,7 @@ void __fastcall TTransferModule::Transfer(TStorage* Src, TStorage* Dst)
                         }
                         try {
                             Dst->setFieldValue(Value);
+
                         } catch (Exception &e) {
                             Logger->WriteLog("Ошибка в приемнике \"" + Dst->getTable() + "\" (" + Dst->getTableStage() + ")" + ". " + e.Message /*+ Dst->GetSrcField()*/, log_n);
                             throw Exception("");

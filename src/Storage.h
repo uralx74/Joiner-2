@@ -52,18 +52,15 @@ public:
 
 
 
-
     bool linkSource(TStorage* Storage);
     //bool FindField(AnsiString fieldName);
     TStorageField* findField(AnsiString fieldName);
 
-    void openTable(bool ReadOnly = true) {
-        (*curTable)->open();
-    };
+    void openTable(bool ReadOnly = true);
 
-    Variant getFieldValue(TStorageField* Field) {};
-    void setFieldValue(Variant Value) {};
-    void commit() {};
+    Variant getFieldValue(TStorageField* Field) const;
+    void setFieldValue(Variant Value);
+    void commit();
     void append();   // Добавляет пустую запись перед (используется в DBase)
     void post() {};     // Фиксирует запись (используется в OraProc)
     void rollback();     // Фиксирует запись (используется в OraProc)
@@ -71,7 +68,7 @@ public:
     void closeTable();
 
     bool eot();     // End Of Tables
-    bool eor() {};     // End Of Records
+    bool eor();     // End Of Records
     bool eof();     // End Of Fields
 
     void nextTable();
@@ -83,21 +80,16 @@ public:
     bool isLinkedField();
     bool isActiveTable() { return Active; };
     bool isModified() { return Modified; };
-    //virtual void SetReadOnly(bool ReadOnlyFlag){ this->ReadOnly = ReadOnlyFlag; };
-    virtual int getRecordCount(){ return RecordCount; };
-    virtual int getRecordIndex(){ return RecordIndex; };
+    int getRecordCount();
+    int getRecordIndex(){ return RecordIndex; };
 
     // Информационные функции
-    AnsiString getTable() {};     // Возвращает наименование активного хранилища данных
+    AnsiString getTable();     // Возвращает наименование активного хранилища данных
     AnsiString getTableStage();     // Возвращает текущий этап обработки данных
     AnsiString getRecordStage();     // Возвращает текущий этап обработки данных
 
-
-
-    TStorageField* addField(TStorageField* Field) {return NULL;};
+    //TStorageField* addField(TStorageField* Field) {return NULL;};
     void loadFieldDefs() {};    // Загружает описание полей
-
-
 
     // Методы копирования полей
     // Используется двойная диспетчеризация
@@ -107,6 +99,9 @@ public:
     //virtual CopyFieldsToOraProc(TStorage* storage);
 
     virtual setTemplate(TStorage* storage, bool deleteAfterUse = true);
+
+    std::vector<TStorageTable*>::size_type getTableCount() const { return Tables.size(); };
+
 
 protected:
     void fullCopyFields(TStorage* src, TStorage* dst);
@@ -121,9 +116,6 @@ protected:
     bool Modified;
 
 
-
-
-
     // удалить
     //std::vector<TStorageField*> Fields;
 
@@ -136,7 +128,6 @@ protected:
 
     TStorage* templateStorage;    // Шаблон (берется первая доступная таблица)
     bool delTemplateStorage;
-
 };
 
 

@@ -3,74 +3,116 @@
 
 #include "StorageTable.h"
 
-
-void TStorageTable::open(bool ReadOnly)
-{
-    this->openTable(ReadOnly);
-    fieldCount = Fields.size();
-
-    active = true;
-}
-
-//---------------------------------------------------------------------------
+/*
+ *
+ *
+ *
+ *
+ */
 TStorageTable::TStorageTable() :
-    truncate(false),
-    fieldCount(0),
-    recordCount(0),
-    readOnly(false),
-    modified(false)
+    _truncate(false),
+    _recordCount(0),
+    _readOnly(true),
+    _modified(false)
 {
+    Fields.reserve(10);
 }
 
-void TStorageTable::setRecordCount(unsigned int _recordCount)
+/*
+*/
+void TStorageTable::open(bool readOnly)
 {
-    recordCount = _recordCount;
+    this->nativeOpenTable(readOnly);
+
+    curField = Fields.begin();
+
+    _active = true;
+    _readOnly = readOnly;
 }
 
-void TStorageTable::appendRecord()
+/*
+*/
+void TStorageTable::commit()
 {
-    append();
-    recordCount++;
+    if (_readOnly) {
+        throw Exception("Can't commit the storage because it is read-only.");
+    } else {
+        try {
+            this->nativeCommit();
+            _modified = true;
+        } catch (Exception &e) {
+            _modified = false;
+        }
+    }
 }
 
-
-void TStorageTable::close()
+/*
+*/
+bool TStorageTable::eof()
 {
-    //std::vector<String>::size_type n = Fields.size();
-    //for (int i = 0; i < n; i++) {   // ”даление полей
-    //    delete Fields[i];
-    //}
+    return curField == Fields.end();
+}
 
-    this->closeTable();
+/*
+*/
+void TStorageTable::setRecordCount(int recordCount)
+{
+    _recordCount = recordCount;
+}
+
+/*
+*/
+void TStorageTable::append()
+{
+    curField = Fields.begin();
+    this->nativeAppend();
+    _recordCount++;
+}
+
+/* «акрывает таблицу, удал€ет список полей
+*/
+void TStorageTable::closeTable()
+{
+    this->nativeCloseTable();
     
     for (FieldsIterator itField = Fields.begin(); itField != Fields.end(); itField++) {
         delete *itField;
     }
 
     Fields.clear();
+    curField = Fields.begin();
 
-    fieldCount = 0;
-    recordCount = 0;
-
-    active = false;
+    _recordCount = 0;
+    _active = false;
+    _modified = false;
 }
 
-void TStorageTable::nextRec()
+void TStorageTable::nextRecord()
 {
-    //if (!eor()) {
-        curField = Fields.begin();
-        nextRecord();
-    //}
+    curField = Fields.begin();
+    this->nativeNextRecord();
 
+    //if (!eor()) {
+    //}
 }
 
+bool TStorageTable::eor()
+{
+    return this->nativeEor();
+}
+
+
+Variant TStorageTable::getFieldValue(TStorageField* Field) const
+{
+    return this->nativeGetFieldValue(Field);
+}
 
 //---------------------------------------------------------------------------
 // ”станавливает значение активного пол€
-void TStorageTable::setValue(Variant Value)
+void TStorageTable::setFieldValue(Variant Value)
 {
     if (isActiveField()) {
-        this->setFieldValue(*curField, Value);
+        this->nativeSetFieldValue(*curField, Value);
         //pTable->FieldByName(curField->name)->Value = Value;
     }
 }
@@ -95,7 +137,7 @@ bool TStorageTable::linkSource(TStorageTable* SourceTable)
 
 TStorageField* TStorageTable::findField(AnsiString fieldName)
 {
-    //int n = Fields.size();
+    int n = Fields.size();
     for (FieldsIterator itField = Fields.begin(); itField != Fields.end(); itField++) {
         if ((*itField)->name == fieldName) {
             return *itField;
@@ -117,13 +159,32 @@ TStorageField* TStorageTable::getField()
 } */
 
 // —оздает и добавл€ет field
-TStorageField* TStorageTable::addField()
+/*TStorageField* TStorageTable::addField()
 {
     TStorageField* field = this->createField();
     Fields.push_back(field);    // возможно нужно приводить static_cast<TDbaseField*>
     fieldCount++;
     return field;
+}*/
+
+void TStorageTable::nextField()
+{
+    if (!eof()) {
+        curField++;
+        //FieldIndex++;
+    }
 }
+
+
+// —оздает и добавл€ет field
+TStorageField* TStorageTable::addField(TStorageField* field)
+{
+    //TStorageField* field = this->createField();
+    //TStorageField* field = this->createField(oleXml, node);
+    Fields.push_back(field);    // возможно нужно приводить static_cast<TDbaseField*>
+    return field;
+}
+
 
 
 /*TStorageField* TStorageTable::newField()

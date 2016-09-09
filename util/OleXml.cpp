@@ -158,11 +158,20 @@ Variant __fastcall OleXml::GetNextNode(Variant node) const
 }
 
 /* Возвращает узел по пути xpath
+   отталкивается от корневого элемета
  */
 Variant __fastcall OleXml::SelectSingleNode(const AnsiString& xpath) const
 {
     return xmlDoc.OleFunction("selectSingleNode", xpath); // selectSingleNode
 }
+
+/* Возвращает узел по пути xpath
+ */
+Variant __fastcall OleXml::SelectSingleNode(Variant node, const AnsiString& xpath) const
+{
+    return node.OleFunction("selectSingleNode", xpath); // selectSingleNode
+}
+
 
 /* Проверяет, существует ли атрибут
  */

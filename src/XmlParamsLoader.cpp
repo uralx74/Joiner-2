@@ -57,14 +57,6 @@ bool __fastcall TXmlLoader::LoadParameters()
 // Возможно вместо ExpandFilename лучше использовать путь от xml-файла конфигурации.
 
 
-    // Параметры командной строки
-    AnsiString clConfig;    // Путь к файлу конфигурации
-    AnsiString clConfigPath;    // Путь к файлу конфигурации
-
-    AnsiString clSrcUsername;  // Имя пользователя базы данных
-    AnsiString clSrcPassword;  // Пароль к базе данных
-    AnsiString clDstUsername;  // Имя пользователя базы данных
-    AnsiString clDstPassword;  // Пароль к базе данных
 
     clConfig = CommandLine->GetValue("-config","-c");
     clDstUsername = CommandLine->GetValue("-dstuser","-du");
@@ -99,73 +91,105 @@ bool __fastcall TXmlLoader::LoadParameters()
         return false;
     }
 
-    //Variant rootNode = msxml.GetRootNode();
-    //Variant node = msxml.GetFirstNode(RootNode);
+    Variant rootNode = msxml.GetRootNode();
     Variant storageNode;
 
+    if (VarIsEmpty(rootNode)) {
+        return false;
+    }
+
+    Logger->WriteLog("Загрузка параметров источника данных...", LogLine);
+    SrcStor = ProceedStorageNode(msxml, "//config/import");
+    Logger->WriteLog("Загрузка параметров приемника данных...", LogLine);
+    DstStor = ProceedStorageNode(msxml, "//config/export");
+}
+
+/*
+ */
+TStorage* TXmlLoader::ProceedStorageNode(const OleXml& msxml, const AnsiString& nodeXpath)
+{
+    Variant storageNode = msxml.SelectSingleNode(nodeXpath);
+    bool isImport = (LowerCase(msxml.GetNodeName(storageNode)) == "import");
+    if (!VarIsEmpty(storageNode)) {
+        int LogLine = 0;
+
+        TStorage* storage = new TStorage();
+        storage->registerFactory("dbase4", new TableFactory<TStorageDbase>);
+        //storage->registerFactory("excel", new DbfFactory());
+        //storage->registerFactory("oraproc", new DbfFactory());
+        //storage->registerFactory("orasql", new DbfFactory());
+        //storage->registerFactory("text", new DbfFactory());
+        //storage->loadStorage(msxml, storageNode, true);
+
+        Variant tableNode = msxml.SelectSingleNode(nodeXpath + "/table");
 
 
-    if (!VarIsEmpty(rootNode)) {
-        storageNode =  msxml.SelectSingleNode("//config/import");
-        if (!VarIsEmpty(storageNode)) {
-            Logger->WriteLog("Загрузка параметров источника данных...", LogLine);
+        for ( true ;!tableNode.IsEmpty(); tableNode = msxml.GetNextNode(tableNode) ) {
 
-            TStorage* storage = new TStorage();
-            storage->registerFactory("dbase4", new TableFactory<TStorageDbase>);
-            //storage->registerFactory("excel", new DbfFactory());
-            //storage->registerFactory("oraproc", new DbfFactory());
-            //storage->registerFactory("orasql", new DbfFactory());
-            //storage->registerFactory("text", new DbfFactory());
-            //storage->loadStorage(msxml, storageNode, true);
+            String storageType = msxml.GetAttributeValue(tableNode, "type");
+            if (!storage->factoryExists(storageType)) {
+                // Если тип таблицы не зарегистрирован, то выводим сообщение
+                // и НЕ добавляем в обрабатываемый список таблиц.
+                Logger->WriteLog("Ошибка. Тип таблицы type=\"" + storageType + "\" не зарегистрирован. Эта таблица обрабатываться не будет.");
+                continue;
+            }
 
-            //Variant tableNode = msxml.SelectSingleNode("//config/import/table");
 
-            Variant tableNode = msxml.SelectSingleNode("//config/import/table");
-            //while (!tableNode.IsEmpty(); tableNode = msxml.GetNextNode(tableNode) ) {
-            //}
+            AnsiString filename = msxml.GetAttributeValue(tableNode, "file");
+            if (filename != "") {
+                AnsiString fullFilename = utilfiles::ExpandFileNameCustom(filename, clConfigPath);
 
-            for ( true ;!tableNode.IsEmpty(); tableNode = msxml.GetNextNode(tableNode) ) {
-                String storageType = msxml.GetAttributeValue(tableNode, "type");
-                if (!storage->factoryExists(storageType)) {
-                    continue;
-                }
+                TSearchRec searchRec;
+                FindFirst(fullFilename, faAnyFile, searchRec);
+                AnsiString filePath = ExtractFilePath(fullFilename);
 
-                AnsiString filename = msxml.GetAttributeValue(tableNode, "file");
-                if (filename != "") {
-                    AnsiString fullFilename = utilfiles::ExpandFileNameCustom(filename, clConfigPath);
-
-                    TSearchRec searchRec;
-                    FindFirst(fullFilename, faAnyFile, searchRec);
-                    AnsiString filePath = ExtractFilePath(fullFilename);
-
+                // Создаем копию узла
+                // если источник, то осуществляем поиск по маске, с добавлением таблиц по каждому файлу,
+                // иначе добавляем абсолютный путь без поиска и проверки на существование
+                Variant singleTableNode = msxml.CloneNode(tableNode, true);
+                if (isImport) {
                     if (searchRec.Name != "") {
                         do {
-                            //Variant t = msxml.CloneNode(tableNode, false);
-                            msxml.SetAttributeValue(tableNode, "file", filePath + searchRec.Name);
-                            storage->loadStorage(msxml, tableNode, false);
-
-                        //Variant k = newXml.AddChildNode(importNode, t);
-                        //TStorageTable* table = tableFactory->newTable();
-                        //table->file = FilePath + SearchRec.Name;
+                            msxml.SetAttributeValue(singleTableNode, "file", filePath + searchRec.Name);
+                            //msxml.AddAttributeNode(singleTableNode, "readonly", "true");
+                            storage->loadStorage(msxml, singleTableNode, false);
                         } while ( FindNext(searchRec) == 0 );
                     }
+                } else {
+                    msxml.SetAttributeValue(singleTableNode, "file", fullFilename);
+                    //msxml.AddAttributeNode(singleTableNode, "readonly", "false");
+
+                    bool xmlSourceAsTemplate = msxml.GetAttributeValue(singleTableNode, "source_as_template", false);
+                    //StorDbase->AddTemplate(xmlTemplate);
+
+                    /*if (xmlTemplate != "") {    // Если задан путь к шаблону
+                        try {
+                            StorDbase->setTemplate(new TStorageDbase(ExpandFileNameCustom(xmlTemplate, clConfigPath)), true);
+                        } catch (Exception &e) {
+                            Logger->WriteLog("Ошибка. Не удалось загрузить шаблон из файла " + xmlTemplate + ".");
+                            throw Exception("");
+                        }
+                    } else if (xmlSourceAsTemplate) {
+                        // нужно ли закрывать после использования?
+                        // как получить список полей не меняя положение указателя на запись, таблицу, источник?
+                    StorDbase->setTemplate(SrcStor);  */
+
+
+
+                    storage->loadStorage(msxml, singleTableNode, false);
                 }
+            } else {
+                storage->loadStorage(msxml, tableNode, isImport);
             }
         }
-        msxml.Save("c:\\test\\new.xml");
+        return storage;
     }
 }
 
-                //String storageType = msxml.GetNodeName(tableNode);
-
-
-                //tableNode = msxml.GetNextNode(tableNode);
-
+            //String storageType = msxml.GetNodeName(tableNode);
+            //tableNode = msxml.GetNextNode(tableNode);
             //Variant tableNode = msxml.GetFirstNode(storageNode);
-
-
             //String storageType2 = msxml.GetAttributeValue(tableNode, "type");
-
    /*
             while (!tableNode.IsEmpty()) {
                 String storageType = oleXml.GetNodeName(tableNode);

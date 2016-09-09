@@ -12,22 +12,14 @@
 #include "Storage.h"
 
 
-
 class TStorageDbase;
-
-/*class DbfFactory : public TableFactory
-{
-public:
-    TStorageTable* newTable();
-};*/
-
-
 
 //---------------------------------------------------------------------------
 // Структура для хранения параметров поля (столбца) DBASE
 class TDbaseField : public TStorageField {    // Для описания структуры dbf-файла
 public:
-    //TDbaseField() {};
+    TDbaseField(const OleXml& oleXml, Variant node);
+    TDbaseField(); // этот конструктор возможно не нужен
     //TDbaseField(TDbaseField* Field);
     //TDbaseField(TStorageField* Field);
 
@@ -44,12 +36,13 @@ public:
 
 };
 
+/*
 // Структура для хранения параметров
-/*class TDbaseTable: public TStorageTable
+class TDbaseTable: public TStorageTable
 {
 public:
     AnsiString File;
-}; */
+};*/
 
 
 //---------------------------------------------------------------------------
@@ -60,24 +53,30 @@ public:
 class TStorageDbase: public TStorageTable
 {
 protected:
-    void closeTable();
+    virtual void nativeCloseTable();
     
 public:
-    TStorageDbase();
-    TStorageDbase(String fileName);
-    void openTable(bool ReadOnly = true);
-    Variant getFieldValue(TStorageField* field);
+    TStorageDbase(const OleXml& oleXml, Variant node);
+    //TStorageDbase(String fileName);
+    void nativeOpenTable(bool readOnly = true);
+    //Variant getFieldValue(TStorageField* field);
+    //void nativeSetFieldValue(TStorageField* field, Variant value);
+    Variant nativeGetFieldValue(const TStorageField* const Field);
+    void nativeSetFieldValue(TStorageField* field, Variant value);
 
-    void setFieldValue(TStorageField* field, Variant value);
     //void setFieldValue(Variant Value);
-    void commit();
-    void append();
+    void nativeCommit();
+    void nativeAppend();
 
 
     bool eor();     // End Of Records
 
     //void nextTable();
-    void nextRecord();
+    virtual void nativeNextRecord();
+    virtual bool nativeEor() const;
+    virtual int nativeGetRecordCount();
+
+
     //void NextField();
 
     //TDbaseField* addField();
@@ -92,27 +91,25 @@ public:
     void loadFieldDefs();
 
 
-    // Тестирование
-    //CopyDbaseFields(TDbaseField* field);
-
-
     // Тестирование 2
     copyFieldsFrom(TStorage* storage);
     copyFieldsToDbf(TStorage* storage);
 
 
 
+    virtual AnsiString getTableName() const;
 
     virtual TStorageField* createField();
+    virtual TStorageField* createField(const OleXml& oleXml, Variant node);
 
-
-    AnsiString File;
 
 
 private:
     void create();  // Создает файл DBF
+    AnsiString _filename;
 
     //std::vector<TDbaseTable> Tables;    // Список таблиц
+
     TDbf* pTable;   // Текущее хранилище
 };
 
