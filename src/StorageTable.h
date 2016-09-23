@@ -15,7 +15,13 @@
 //#include <exception>
 //#include <stdexcept>
 
+
+
+
 class TStorageTable;
+
+typedef std::vector<TStorageTable*> TTableList;
+typedef std::vector<TStorageTable*>::iterator TTableListIterator;
 
 
 /*
@@ -87,11 +93,20 @@ public:
     TStorageTable();
     virtual ~TStorageTable() {};
 
-    void nextRecord();
+    virtual AnsiString getTableName() const = 0;
+    virtual int nativeGetRecordCount() const = 0;
+
+    // Возвращает указатель на первую валидную таблицу, которую можно использовать
+    // в качестве шаблона (например в качестве описания полей)
+    void setDefaultTemplates(TTableList Tables);
+    TTableList defaultTemplates;
+
+    
 
     void closeTable();
     void open(bool ReadOnly = true);
-    void nextRec();
+    void nextRecord();
+    //void nextRec();
     void nextField();
 
 
@@ -102,22 +117,23 @@ public:
     TStorageField* findField(AnsiString fieldName);
     TStorageField* getField();
 
+    void addField(TStorageField* field);
     //TStorageField* addField();
-    TStorageField* addField(TStorageField* field);
     //TStorageField* addField(const OleXml& oleXml, Variant node);
 
     Variant getFieldValue(TStorageField* Field) const;
     void setFieldValue(Variant Value);
 
-    virtual AnsiString getTableName() const = 0;
 
     void append();
     bool eof();
     bool eor();
     void commit();
-    virtual int nativeGetRecordCount() = 0;
 
 protected:
+    TStorageTable* getDefaultTemplate();
+
+
     void setRecordCount(int recordCount);
 
     virtual void nativeOpenTable(bool readOnly = true) = 0;
@@ -128,6 +144,7 @@ protected:
 
     virtual void nativeNextRecord() {};
     virtual void nativeAppend() {};
+    virtual void nativePost() {};
     virtual void nativeCommit() = 0;
     virtual bool nativeEor() const = 0;
 

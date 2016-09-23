@@ -101,12 +101,12 @@ bool __fastcall TXmlLoader::LoadParameters()
     Logger->WriteLog("Загрузка параметров источника данных...", LogLine);
     SrcStor = ProceedStorageNode(msxml, "//config/import");
     Logger->WriteLog("Загрузка параметров приемника данных...", LogLine);
-    DstStor = ProceedStorageNode(msxml, "//config/export");
+    DstStor = ProceedStorageNode(msxml, "//config/export", SrcStor);
 }
 
 /*
  */
-TStorage* TXmlLoader::ProceedStorageNode(const OleXml& msxml, const AnsiString& nodeXpath)
+TStorage* TXmlLoader::ProceedStorageNode(const OleXml& msxml, const AnsiString& nodeXpath, TStorage* templateStorage)
 {
     Variant storageNode = msxml.SelectSingleNode(nodeXpath);
     bool isImport = (LowerCase(msxml.GetNodeName(storageNode)) == "import");
@@ -114,12 +114,23 @@ TStorage* TXmlLoader::ProceedStorageNode(const OleXml& msxml, const AnsiString& 
         int LogLine = 0;
 
         TStorage* storage = new TStorage();
-        storage->registerFactory("dbase4", new TableFactory<TStorageDbase>);
+        storage->addFactory("dbase4", new TableFactory<TStorageDbase>);
+        storage->addFactory("orasql", new TableFactory<TStorageOraSql>);
+        //storage->removeFactory("dbase4");
+        //storage->deleteAllFactories();
+
+
         //storage->registerFactory("excel", new DbfFactory());
         //storage->registerFactory("oraproc", new DbfFactory());
         //storage->registerFactory("orasql", new DbfFactory());
         //storage->registerFactory("text", new DbfFactory());
         //storage->loadStorage(msxml, storageNode, true);
+
+        // Задаем шаблон
+        //if (templateStorage != NULL) {
+        //    storage->setTemplate(templateStorage);
+        //}
+
 
         Variant tableNode = msxml.SelectSingleNode(nodeXpath + "/table");
 
@@ -127,7 +138,7 @@ TStorage* TXmlLoader::ProceedStorageNode(const OleXml& msxml, const AnsiString& 
         for ( true ;!tableNode.IsEmpty(); tableNode = msxml.GetNextNode(tableNode) ) {
 
             String storageType = msxml.GetAttributeValue(tableNode, "type");
-            if (!storage->factoryExists(storageType)) {
+            if ( !storage->factoryExists(storageType) ) {
                 // Если тип таблицы не зарегистрирован, то выводим сообщение
                 // и НЕ добавляем в обрабатываемый список таблиц.
                 Logger->WriteLog("Ошибка. Тип таблицы type=\"" + storageType + "\" не зарегистрирован. Эта таблица обрабатываться не будет.");
@@ -156,10 +167,11 @@ TStorage* TXmlLoader::ProceedStorageNode(const OleXml& msxml, const AnsiString& 
                         } while ( FindNext(searchRec) == 0 );
                     }
                 } else {
+
                     msxml.SetAttributeValue(singleTableNode, "file", fullFilename);
                     //msxml.AddAttributeNode(singleTableNode, "readonly", "false");
 
-                    bool xmlSourceAsTemplate = msxml.GetAttributeValue(singleTableNode, "source_as_template", false);
+                    //bool xmlSourceAsTemplate = msxml.GetAttributeValue(singleTableNode, "source_as_template", false);
                     //StorDbase->AddTemplate(xmlTemplate);
 
                     /*if (xmlTemplate != "") {    // Если задан путь к шаблону

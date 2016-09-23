@@ -6,7 +6,7 @@
 #include "..\util\OleXml.h"
 #include "Storage.h"
 #include "StorageDbf.h"
-//#include "StorageOra.h"
+#include "StorageOra.h"
 //#include "StorageText.h"
 //#include "StorageExcel.h"
 #include "Logger.h"
@@ -22,7 +22,7 @@ private:
     TLogger* Logger;
 
 
-    TStorage* ProceedStorageNode(const OleXml& msxml, const AnsiString& nodeXpath);
+    TStorage* ProceedStorageNode(const OleXml& msxml, const AnsiString& nodeXpath, TStorage* templateStorage = NULL);
 
     /* Параметры командной строки */
     AnsiString clConfig;    // Путь к файлу конфигурации

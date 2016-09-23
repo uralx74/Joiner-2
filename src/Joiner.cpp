@@ -26,6 +26,7 @@ USEUNIT("..\util\CommandLine.cpp");
 USEUNIT("TransferModule.cpp");
 USEUNIT("Storage.cpp");
 USEUNIT("StorageDbf.cpp");
+USEUNIT("StorageOra.cpp");
 USEUNIT("Logger.cpp");
 USEUNIT("..\util\VigenereCipher.cpp");
 USEUNIT("..\util\TransposCipher.cpp");

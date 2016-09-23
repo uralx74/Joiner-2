@@ -4,6 +4,13 @@
 #include "StorageOra.h"
 
 
+
+/*
+TStorageOraSql::TStorageOraSql(const OleXml& oleXml, Variant node)
+{
+} */
+
+
 //---------------------------------------------------------------------------
 // TStorageOra
 //---------------------------------------------------------------------------
@@ -21,7 +28,8 @@
 //
 //
 //---------------------------------------------------------------------------
-//
+
+
 void TStorageOra::openConnection(AnsiString Server, AnsiString Username, AnsiString Password)
 {
     try {
@@ -80,12 +88,18 @@ void TStorageOra::openConnection(AnsiString Server, AnsiString Username, AnsiStr
 
 }
 
+int TStorageOra::nativeGetRecordCount() const
+{
+    return dbQuery->RecordCount;
+}
+
+
 //---------------------------------------------------------------------------
 //
-void TStorageOra::closeTable()
+void TStorageOra::nativeCloseTable()
 {
     if (dbQuery != NULL) {
-        Active = false;
+        //Active = false;
         dbQuery->Close();
         delete dbQuery;
         dbQuery = NULL;
@@ -97,15 +111,15 @@ void TStorageOra::closeTable()
         dbSession = NULL;
     }
 
-    TStorage::closeTable();
-    Active = false;
+    //TStorage::closeTable();
+    //Active = false;
 }
 
 //---------------------------------------------------------------------------
 //
 TStorageOra::~TStorageOra()
 {
-    TStorageOra::closeTable();
+    this->nativeCloseTable();
 }
 
 //---------------------------------------------------------------------------
@@ -127,9 +141,9 @@ void TStorageOra::prepareQuery()
 
 //---------------------------------------------------------------------------
 // ќчистка таблицы
-void TStorageOra::truncateTable(TStorageTableOra* Table)
+void TStorageOra::truncateTable(const String& tableName)
 {
-    if (!ReadOnly && Table->Truncate && Table->Table != "") {
+    /*if (!_readOnly && Table->Truncate && Table->Table != "") {
         try {
             //dbQuery->SQL->Add("delete from " + Table->Table);
             dbQuery->SQL->Add("truncate table " + Table->Table);
@@ -142,65 +156,73 @@ void TStorageOra::truncateTable(TStorageTableOra* Table)
         }
     } else {
         throw Exception("Can't truncate ReadOnly table .");
-    }
+    }*/
+}
+
+
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+
+TStorageOraProc::TStorageOraProc(const OleXml& oleXml, Variant node)
+{
 }
 
 //---------------------------------------------------------------------------
 // —оздание принимающего OraQuery
-void TStorageOraProc::openTable(bool ReadOnly)
+void TStorageOraProc::nativeOpenTable(bool readOnly)
 {
-    this->ReadOnly = ReadOnly;
+    this->_readOnly = readOnly;
 
-    /*возможно воспользоватьс€ TStorageOra::Open*/
+    //возможно воспользоватьс€ TStorageOra::Open
 
-    if (Tables.size()>0) {
-        openConnection(Tables[TableIndex].Server, Tables[TableIndex].Username, Tables[TableIndex].Password);
-    } else {
-        throw Exception("Storage is not specified.");
-    }
+    //if (Tables.size()>0) {
+        openConnection(_server, _username, _password);
+    //} else {
+        //throw Exception("Storage is not specified.");
+    //}
 
     prepareQuery();
-    if (ReadOnly == false) {
-        truncateTable(&Tables[TableIndex]);
+    if (_readOnly == false) {
+        truncateTable(_table);
     }
 
     try {
- 	    dbQuery->CreateProcCall(Tables[TableIndex].Procedure, 0);
+ 	    dbQuery->CreateProcCall(_procedure, 0);
     } catch (...) {
         delete dbQuery;
         dbQuery = NULL;
         throw Exception("Can't create procedure call.");
     }
 
-    Active = true;
+    _active = true;
 }
 
 //---------------------------------------------------------------------------
+// ”станавливает значение пол€
+void TStorageOraProc::nativeSetFieldValue(TStorageField* field, Variant value)
+{
+    dbQuery->ParamByName(field->name)->Value = value;
+}
+
+/*//---------------------------------------------------------------------------
 // ”станавливает значение активного пол€
 void TStorageOraProc::setFieldValue(Variant Value)
 {
-    if (curField->isActiveField())
+    if (curField->isActiveField()) {
         dbQuery->ParamByName(curField->name)->Value = Value;
-}
+    }
+}  */
 
 //---------------------------------------------------------------------------
 //
-void TStorageOraProc::post()
+void TStorageOraProc::nativePost()
 {
     dbQuery->ExecSQL();
-    FieldIndex = 0;
-    RecordCount++;
-    Modified = true;
-}
-
-
-//---------------------------------------------------------------------------
-//
-void TStorageOraProc::nextField()
-{
-    if (!eof()) {
-        FieldIndex++;
-    }
+    //FieldIndex = 0;
+    //RecordCount++;
+    //Modified = true;
 }
 
 //---------------------------------------------------------------------------
@@ -212,21 +234,14 @@ void TStorageOraProc::nextField()
 
 //---------------------------------------------------------------------------
 //
-/*bool TStorageOraProc::IsActiveField()
-{
-    return Fields[FieldIndex]->active && Fields[FieldIndex]->enable;
-} */
-
-//---------------------------------------------------------------------------
-//
-TOraField* TStorageOraProc::addField()
+/*TOraField* TStorageOraProc::addField()
 {
     TOraField* Field = new TOraField();
     Fields.push_back(dynamic_cast<TStorageField*>(Field));
     FieldCount++;
     return Field;
 
-}
+}*/
 
 /*
 //---------------------------------------------------------------------------
@@ -239,69 +254,82 @@ void TStorageOraProc::AddField(const TOraField& Field)
 
 //---------------------------------------------------------------------------
 //
-void TStorageOraProc::addTable(const TOraProcTable& Table)
+/*void TStorageOraProc::addTable(const TOraProcTable& Table)
 {
     Tables.push_back(Table);
     TableCount++;
-}
+}*/
 
 //---------------------------------------------------------------------------
 // ¬озвращает наименование активного источника/приемника данных
-AnsiString TStorageOraProc::getTable()
+AnsiString TStorageOraProc::getTableName() const
 {
+    return _procedure;
     //return Procedure;
-    if (!eot()) {
+    /*if (!eot()) {
         if (Tables[TableIndex].Table != "") {   // ≈сли задана таблица, то возвращаем им€ таблицы
             return Tables[TableIndex].Table;
         } else {
             return Tables[TableIndex].Procedure;
         }
-    }
+    }*/
 }
 
 //---------------------------------------------------------------------------
 //  TStorageOraSql
 //---------------------------------------------------------------------------
 
+TStorageOraSql::TStorageOraSql(const OleXml& oleXml, Variant node)
+{
+    _server = oleXml.GetAttributeValue(node, "server");
+    _username = oleXml.GetAttributeValue(node, "username", "");
+    _password = oleXml.GetAttributeValue(node, "password", "");
+
+}
+
 //---------------------------------------------------------------------------
 //
-void TStorageOraSql::openTable(bool ReadOnly)
+void TStorageOraSql::nativeOpenTable(bool readOnly)
 {
-    this->ReadOnly = ReadOnly;
+    this->_readOnly = readOnly;
 
-    if (Tables.size()>0)
-        openConnection(Tables[TableIndex].Server, Tables[TableIndex].Username, Tables[TableIndex].Password);
-    else
-        throw Exception("Storage is not specified.");
+    //if (Tables.size()>0)
+    //{
+        openConnection(_server, _username, _password);
+    //}
+    //else
+    //{
+    //    throw Exception("Storage is not specified.");
+    //}
 
     prepareQuery();
-    if (ReadOnly == false) {
-        truncateTable(&Tables[TableIndex]);
+    if (_readOnly == false) {
+        truncateTable(_table);
     }
 
-    AnsiString Sql = Tables[TableIndex].Sql;
-    AnsiString SqlText;
+    AnsiString sqlFile = _sql;
+    AnsiString sqlText;
 
-    if (Sql != "") {
-        if (!FileExists(Sql)) {
-            throw Exception("File not found " + Sql + ".");
+    if (sqlFile != "") {
+        if (!FileExists(sqlFile)) {
+            throw Exception("File not found " + sqlFile + ".");
         }
         TStringList* pStringList;
         pStringList = new TStringList();
         pStringList->Clear();
-        pStringList->LoadFromFile(Sql);
-        SqlText = pStringList->Text;
+        pStringList->LoadFromFile(sqlFile);
+        sqlText = pStringList->Text;
         pStringList->Free();
     } else {
-        SqlText =  "select * from " + Tables[TableIndex].Table + (ReadOnly == true? "": " for update");
+        sqlText =  "select * from " + _table + (_readOnly == true? "": " for update");
     }
 
     dbQuery->SQL->Clear();
-    dbQuery->SQL->Add(SqlText);
+    dbQuery->SQL->Add(sqlText);
 
     try {
         dbQuery->Open();
-        RecordCount = dbQuery->RecordCount;
+        //_recordCount = dbQuery->RecordCount;
     } catch (...) {
         throw Exception("Can't to open query.");
     }
@@ -313,7 +341,7 @@ void TStorageOraSql::openTable(bool ReadOnly)
     //FieldCount = dbQuery->Fields->Count;
     // ¬озможно сделать цикл по OraQuery->Fields и заполн€ть Fields
     // если  Fields.size() == 0
-    FieldCount = Fields.size();
+    /*FieldCount = Fields.size();
     if (FieldCount == 0) {
         FieldCount = dbQuery->Fields->Count;
 
@@ -331,7 +359,7 @@ void TStorageOraSql::openTable(bool ReadOnly)
     }
 
     //dbSession->StartTransaction();
-    Active = true;
+    Active = true; */
 }
 
 //---------------------------------------------------------------------------
@@ -362,31 +390,33 @@ Variant TStorageOraSql::getFieldValue(TStorageField* Field)
 
 //---------------------------------------------------------------------------
 // ”станавливает значение активного пол€
-void TStorageOraSql::setFieldValue(Variant Value)
+void TStorageOraSql::nativeSetFieldValue(TStorageField* field, Variant value)
 {
+    dbQuery->FieldByName(field->name)->Value = value;   // 2016-07-28
+
+    /*
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (Fields[FieldIndex]->active && Fields[FieldIndex]->enable) {
         //dbQuery->FieldByName("acct_id")->Value = Value;   // 2016-07-28
         dbQuery->FieldByName(Fields[FieldIndex]->name)->Value = Value;   // 2016-07-28
-    }
+    }*/
 }
 
 //---------------------------------------------------------------------------
 // ƒобавл€ет новую запись в таблицу
-void TStorageOraSql::append()
+void TStorageOraSql::nativeAppend()
 {
     dbQuery->Append();
-    TStorage::append();
 }
 
 //---------------------------------------------------------------------------
 // ‘иксирует изменени€
-void TStorageOraSql::commit()
+void TStorageOraSql::nativeCommit()
 {
-    if (ReadOnly) {
+    /*if (ReadOnly) {
         throw Exception("Can't commit the storage because it is read-only.");
        //return;
-    }
+    }  */
 
     if (dbQuery->Modified) {
         try {
@@ -394,27 +424,27 @@ void TStorageOraSql::commit()
             //dbQuery->CommitUpdates();
             //dbSession->ApplyUpdates();
             dbSession->Commit();  // 2016-07-28
-            Modified = true;
-            RecordCount = dbQuery->RecordCount;
+            //Modified = true;
+            //RecordCount = dbQuery->RecordCount;
         } catch (Exception &e) {
             //dbSession->Rollback();
             throw Exception(e.Message);
         }
     }
-    FieldIndex = 0;
+    //FieldIndex = 0;
 }
 
 //---------------------------------------------------------------------------
 //
-void TStorageOraSql::post()
+/*void TStorageOraSql::post()
 {
     //dbQuery->ExecSQL();
-    FieldIndex = 0;
-}
+    //FieldIndex = 0;
+}*/
 
 //---------------------------------------------------------------------------
 // ¬озвращает true если достигнут конец таблицы
-bool TStorageOraSql::eor()
+/*bool TStorageOraSql::eor()
 {
     if (dbQuery != NULL) {
         int R = dbQuery->RecordCount;
@@ -423,15 +453,15 @@ bool TStorageOraSql::eor()
     } else {
         return true;
     }
-}
+} */
 
 //---------------------------------------------------------------------------
 // ѕереходит к следующей записи таблицы
-void TStorageOraSql::nextRecord()
+void TStorageOraSql::nativeNextRecord()
 {
     //int k = pTable->RecNo;
     dbQuery->Next();
-    TStorage::nextRecord();
+    //TStorage::nextRecord();
 }
 
 //---------------------------------------------------------------------------
@@ -450,15 +480,16 @@ void TStorageOraSql::nextRecord()
 
 //---------------------------------------------------------------------------
 //
-TOraField* TStorageOraSql::addField()
+/*TOraField* TStorageOraSql::addField()
 {
     TOraField* Field = new TOraField();
     Fields.push_back(Field);
     FieldCount++;
     return Field;
 
-}
+}  */
 
+/*
 //---------------------------------------------------------------------------
 //
 void TStorageOraSql::addTable(const TOraSqlTable &Table)
@@ -466,12 +497,13 @@ void TStorageOraSql::addTable(const TOraSqlTable &Table)
     Tables.push_back(Table);
     TableCount++;
 }
-
+  */
 //---------------------------------------------------------------------------
 // ¬озвращает наименование активного источника/приемника данных
-AnsiString TStorageOraSql::getTable()
+AnsiString TStorageOraSql::getTableName() const
 {
-    if (!eot()) {
+    return _table;
+/*    if (!eot()) {
         if (Tables[TableIndex].Sql != "") {
             return Tables[TableIndex].Sql;
         } else {
@@ -479,5 +511,5 @@ AnsiString TStorageOraSql::getTable()
         }
     } else {
         throw Exception("End of table is reached.");
-    }
+    } */
 }

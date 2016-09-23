@@ -3,12 +3,23 @@
 
 #include "StorageTable.h"
 
+
 /*
  *
  *
  *
  *
  */
+
+void TStorageTable::setDefaultTemplates(TTableList Tables)
+{
+
+}
+
+TStorageTable* TStorageTable::getDefaultTemplate()
+{
+}
+
 TStorageTable::TStorageTable() :
     _truncate(false),
     _recordCount(0),
@@ -167,6 +178,8 @@ TStorageField* TStorageTable::getField()
     return field;
 }*/
 
+/*
+*/
 void TStorageTable::nextField()
 {
     if (!eof()) {
@@ -175,17 +188,12 @@ void TStorageTable::nextField()
     }
 }
 
-
-// Создает и добавляет field
-TStorageField* TStorageTable::addField(TStorageField* field)
+/* Добавляет field в список
+*/
+void TStorageTable::addField(TStorageField* field)
 {
-    //TStorageField* field = this->createField();
-    //TStorageField* field = this->createField(oleXml, node);
     Fields.push_back(field);    // возможно нужно приводить static_cast<TDbaseField*>
-    return field;
 }
-
-
 
 /*TStorageField* TStorageTable::newField()
 {

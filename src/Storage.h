@@ -10,6 +10,8 @@
 //#include <typeinfo>
 
 typedef std::map<String, String> StorageParameters;
+typedef std::map<AnsiString, TableFactoryBase*> FactoriesTable;
+//typedef std::map<AnsiString, TableFactoryBase*>::iterator FactoriesTableIterator;
 
 
 /*
@@ -43,8 +45,12 @@ public:
     TStorage();
     virtual ~TStorage();
 
-    void registerFactory(String name, TableFactoryBase* factory);
+    /* */
+    void addFactory(const String& name, TableFactoryBase* factory);
     bool factoryExists(const String& name) const;
+    void deleteAllFactories();
+    void deleteFactory(const String& name);
+
 
     void loadTables(StorageParameters& storageParameters);
     void loadStorage(const OleXml& oleXml, Variant node, bool readOnly);
@@ -120,11 +126,11 @@ protected:
     //std::vector<TStorageField*> Fields;
 
 
-    std::vector<TStorageTable*> Tables;    // Список таблиц
-    std::vector<TStorageTable*>::iterator curTable;
+    TTableList Tables;    // Список таблиц
+    TTableListIterator curTable;
 
 
-    std::map<AnsiString, TableFactoryBase*> tableFactories;
+    FactoriesTable tableFactories;
 
     TStorage* templateStorage;    // Шаблон (берется первая доступная таблица)
     bool delTemplateStorage;

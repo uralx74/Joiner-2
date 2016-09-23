@@ -22,8 +22,8 @@ void __fastcall TTransferModule::Cancel()
     //_IsCancel = true;
 }
 
-//---------------------------------------------------------------------------
-// Запуск
+/* Запускает процесс загрузки параметров и обработки (копирования) данных
+*/
 void __fastcall TTransferModule::Start()
 {
     Logger = &TLogger::getInstance();

@@ -4,6 +4,7 @@
 #include "StorageDbf.h"
 
 
+
 /*этот конструктор возможно ненужен*/
 TDbaseField::TDbaseField()
 {
@@ -20,6 +21,19 @@ TDbaseField::TDbaseField(const OleXml& oleXml, Variant node)
     length = oleXml.GetAttributeValue(node, "length", 0);   // Длина поля
     decimals = oleXml.GetAttributeValue(node, "decimals", 0); // Длина десятичной части
 }
+
+/* проверить необходимость создания поля без загрузки из xml*/
+TStorageField* TStorageDbase::createField()
+{
+    return new TDbaseField();
+}
+
+/**/
+TStorageField* TStorageDbase::createField(const OleXml& oleXml, Variant node)
+{
+    return new TDbaseField(oleXml, node);
+}
+
 
 /*
  *
@@ -46,102 +60,35 @@ TStorageDbase::TStorageDbase(const OleXml& oleXml, Variant node) :
     _truncate = oleXml.GetAttributeValue(node, "truncate", false);
     _readOnly = oleXml.GetAttributeValue(node, "readonly", true);
 
-
-
     // Здесь возможно тоже создавать TStorage и добавлять в него поля ?
+    // Загружаем список полей
     Variant nodeField = oleXml.SelectSingleNode(node, "field");
-    /*if (!VarIsEmpty(nodeField)) {
-
-        AnsiString name = oleXml.GetAttributeValue(nodeField, "name", "");
-
-
-    }*/
-
-
     while (!VarIsEmpty(nodeField) && oleXml.GetNodeName(nodeField) == "field") {
         // Возможно переделать на абстрактную фабрику или др.
         // а также позаботиться об удалении обьекта
 
         TStorageField* field = this->createField(oleXml, nodeField);
-        this->addField(field);
-//        TStorageField* dbaseField = this->addField(oleXml, nodeField);
+        //this->
+        addField(field);
 
-        /*TDbaseField* dbaseField = (TStorageField*)this->addField();
-        if (dbaseField != NULL) {
-            // Создать функцию для установки значений
-            dbaseField->type = LowerCase(msxml.GetAttributeValue(node_fields, "type", "C"))[1];
-            dbaseField->name = LowerCase(msxml.GetAttributeValue(node_fields, "name"));
-            dbaseField->length = msxml.GetAttributeValue(node_fields, "length", 0);
-            dbaseField->decimals = msxml.GetAttributeValue(node_fields, "decimals", 0);
-            dbaseField->active = msxml.GetAttributeValue(node_fields, "active", true);
-            dbaseField->enable = msxml.GetAttributeValue(node_fields, "enable", true);
-            dbaseField->name_src = LowerCase(msxml.GetAttributeValue(node_fields, "name_src", dbaseField->name));
-        }  */
-        //if (dbaseField->name_src == "" )
-        //    dbaseField->name_src = dbaseField->name;
         nodeField = oleXml.GetNextNode(nodeField);
     }
-
-
-
-
-
-
-/*                    while (!node_fields.IsEmpty()) {
-                        if (msxml.GetNodeName(node_fields) == "field") {
-                            // Возможно переделать на абстрактную фабрику или др.
-                            // а также позаботиться об удалении обьекта
-                            TDbaseField* dbaseField = StorDbase->addField();
-                            if (dbaseField != NULL) {
-                                // Создать функцию для установки значений
-                                dbaseField->type = LowerCase(msxml.GetAttributeValue(node_fields, "type", "C"))[1];
-                                dbaseField->name = LowerCase(msxml.GetAttributeValue(node_fields, "name"));
-                                dbaseField->length = msxml.GetAttributeValue(node_fields, "length", 0);
-                                dbaseField->decimals = msxml.GetAttributeValue(node_fields, "decimals", 0);
-                                dbaseField->active = msxml.GetAttributeValue(node_fields, "active", true);
-                                dbaseField->enable = msxml.GetAttributeValue(node_fields, "enable", true);
-                                dbaseField->name_src = LowerCase(msxml.GetAttributeValue(node_fields, "name_src", dbaseField->name));
-                            }
-                            //if (dbaseField->name_src == "" )
-                            //    dbaseField->name_src = dbaseField->name;
-                        }
-                        node_fields = msxml.GetNextNode(node_fields);
-                    }
-
-*/
-
-
-
-
-
-
-
-
-
-
 
     //String xmlTemplate = msxml.GetAttributeValue(subnode, "template", "");
     //bool xmlSourceAsTemplate = msxml.GetAttributeValue(subnode, "source_as_template", false);
 }
 
-/* Добавляет новое поле в список полей ()
- * возможно переделать на AddField(TDbaseField* Field)
- */
-/*TStorageField* TStorageDbase::addField(TStorageField* Field)
+/*TStorageDbase::TStorageDbase(String fileName)
 {
-    TStorageField* newField = new TDbaseField();
+    //TStorageDbase* storageDbaseStructure = new TStorageDbase();
+    TDbaseTable table;
+    table.File = fileName;
+    //table.File = ExpandFileName(fileName);
+    this->addTable(table);
+} */
 
-    //String test2 = (static_cast<TDbaseField*>(newField))->type;
 
-    // Необходимо? приведение типов чтобы скопировать обьект правильно
-    *(static_cast<TDbaseField*>(newField)) = *(static_cast<TDbaseField*>(Field));
-
-    this->Fields.push_back(newField);// возможно нужно приводить к  static_cast<TDbaseField*>
-    FieldCount++;
-    return newField;
-}*/
-
-/*
+/* Загружает поля из TDbf::Dbf_fields::TDbfFieldDefs
  */
 void TStorageDbase::loadFieldDefs()
 {
@@ -184,32 +131,6 @@ TStorageDbase::copyFieldsToDbf(TStorage* storage)
     //TStorage::fullCopyFields(this, storage);
 }
 
-
-
-/*TStorageDbase::TStorageDbase(String fileName)
-{
-    //TStorageDbase* storageDbaseStructure = new TStorageDbase();
-    TDbaseTable table;
-    table.File = fileName;
-    //table.File = ExpandFileName(fileName);
-    this->addTable(table);
-} */
-
-
-
-/* проверить необходимость создания поля без загрузки из xml*/
-TStorageField* TStorageDbase::createField()
-{
-    return new TDbaseField();
-}
-
-TStorageField* TStorageDbase::createField(const OleXml& oleXml, Variant node)
-{
-    return new TDbaseField(oleXml, node);
-}
-
-
-
 //---------------------------------------------------------------------------
 // Добавляет новое поле в список полей
 //TDbaseField* TStorageDbase::addField()
@@ -243,34 +164,6 @@ void TStorageDbase::AddField(const TDbaseField* Field)
     FieldCount++;
 }*/
 
-//---------------------------------------------------------------------------
-// Добавляет таблицу в список (имя файла, может быть задано маской)
-/*void TStorageDbase::addTable(const TDbaseTable& Table)
-{
-    //TDbaseTable* Table = new TDbaseTable();
-
-    TSearchRec SearchRec;
-    FindFirst(Table.File, faAnyFile, SearchRec);
-
-    if (SearchRec.Name != "") {
-        AnsiString FilePath = ExtractFilePath(Table.File);
-        do {
-            TDbaseTable NewTable;
-            NewTable.File = FilePath + SearchRec.Name;
-            Tables.push_back(NewTable);
-            TableCount++;
-        } while ( FindNext(SearchRec) == 0);
-    } else {
-        Tables.push_back(Table);
-        TableCount++;
-    }
-    FindClose(SearchRec);
-
-
-    //Tables.push_back(Table);
-    //TableCount++;
-}*/
-
 /* Открытие таблицы
  */
 void TStorageDbase::nativeOpenTable(bool readOnly)
@@ -296,6 +189,7 @@ void TStorageDbase::nativeOpenTable(bool readOnly)
         } else {
             throw Exception("File not found " + _filename + ".");
         }
+        // Загружаем список полей
         loadFieldDefs();
     } else {
         create();
@@ -369,20 +263,16 @@ void TStorageDbase::create()
         //pTable->Post();
     } catch (...) {
     }
-
-    //FieldCount = Fields.size();   /**/
 }
 
 
-//---------------------------------------------------------------------------
-//
+/**/
 std::vector<TStorageField> TStorageDbase::getFieldDefs()
 {
     std::vector<TStorageField> Result;
 }
 
-//---------------------------------------------------------------------------
-//
+/**/
 void TStorageDbase::setFieldDefs(std::vector<TStorageField>)
 {
 }
@@ -425,7 +315,7 @@ void TStorageDbase::nativeCommit()
 
 /* Возвращает количество записей в таблице
 */
-int TStorageDbase::nativeGetRecordCount()
+int TStorageDbase::nativeGetRecordCount() const
 {
     return pTable->RecordCount;
 }
@@ -455,30 +345,8 @@ bool TStorageDbase::eor()
     return pTable->Eof;
 }
 
-/* Возвращает true если достигнута последняя запись
-*/
-//bool TStorageDbase::Eof()
-//{
-//    return FieldIndex + 1 == Fields.size();
-//}
-
-//---------------------------------------------------------------------------
-// Переходит к следующей таблице
-/*void TStorageDbase::nextTable()
-{
-    TStorage::nextTable();
-
-    if (pTable != NULL) {
-        closeTable();
-    }
-
-    if (!eot()) {
-        openTable();
-    }
-}*/
-
-//---------------------------------------------------------------------------
-// Переходит к следующей записи таблицы
+/* Переходит к следующей записи таблицы
+ */
 void TStorageDbase::nativeNextRecord()
 {
     //try {
@@ -487,7 +355,8 @@ void TStorageDbase::nativeNextRecord()
     //}
 }
 
-
+/* Возвращает true если достигнут конец таблицы
+ */
 bool TStorageDbase::nativeEor() const
 {
     return pTable->Eof;

@@ -264,11 +264,11 @@ bool __fastcall OleXml::GetAttributeValue(Variant node, const AnsiString& attrib
         return defaultValue;
     } else {
         String textValue = attribute.OlePropertyGet("Value");
-        if (textValue == "true")
+        if (textValue == TRUE_STR_VALUE)
         {
             return true;
         }
-        else if (textValue == "false")
+        else if (textValue == FALSE_STR_VALUE)
         {
             return false;
         }

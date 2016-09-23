@@ -6,12 +6,11 @@
 #define NDEBUG
 #include <assert.h>
 
-
-//---------------------------------------------------------------------------
-// TStorage
-// The interface class
-//---------------------------------------------------------------------------
-
+/*
+ *  TStorage
+ *  The interface class
+ */
+ 
 TStorage::TStorage() :
     TableIndex(0),
     TableCount(0),
@@ -31,22 +30,67 @@ TStorage::TStorage() :
 
 TStorage::~TStorage()
 {
+    deleteAllFactories();
 }
 
-int TStorage::getRecordCount()
-{
-    //return RecordCount;
-    return (*curTable)->nativeGetRecordCount();
-}
-
-void TStorage::registerFactory(String name, TableFactoryBase* factory)
+/* Добавляет новую фабрику в список
+ */
+void TStorage::addFactory(const String& name, TableFactoryBase* factory)
 {
     tableFactories[name] = factory;
 }
 
+/* Удаляет фабрику по имени
+ */
+void TStorage::deleteFactory(const String& name)
+{
+    FactoriesTable::iterator factory = tableFactories.find(name);
+
+    if ( factory != tableFactories.end() )
+    {
+        String s = factory->first;
+        delete factory->second;
+        factory->second = NULL;
+        tableFactories.erase(factory);
+    }
+}
+
+/* Удаляет все фабрики
+ */
+void TStorage::deleteAllFactories()
+{
+    FactoriesTable::iterator it = tableFactories.begin();
+
+    while (it != tableFactories.end()) {
+        FactoriesTable::iterator itForErase = it;
+
+        delete it->second;
+        it->second = NULL;
+
+        it++;
+        tableFactories.erase(itForErase);
+    }
+}
+
+/* Возвращает true если фабрика существует в списке
+ */
 bool TStorage::factoryExists(const String& name) const
 {
     return tableFactories.find(name) != tableFactories.end();
+}
+
+/*
+ *
+ * Функции для работы с таблицами
+ *
+ */
+
+/* Возвращает количество записей в текущей таблице
+ */
+int TStorage::getRecordCount()
+{
+    //return RecordCount;
+    return (*curTable)->nativeGetRecordCount();
 }
 
 /* Загружает хранилище из файла-xml
@@ -63,7 +107,8 @@ void TStorage::loadStorage(const OleXml& oleXml, Variant node, bool readOnly)
     String storageType = oleXml.GetAttributeValue(node, "type");
 
     // Если тип хранилища зарегистрирован
-    if (tableFactories.find(storageType) != tableFactories.end()) {
+    if ( tableFactories.find(storageType) != tableFactories.end() )
+    {
         AnsiString attrFile = oleXml.GetAttributeValue(node, "file");
 
         TableFactoryBase* tableFactory = tableFactories[storageType];
@@ -327,8 +372,5 @@ AnsiString TStorage::getRecordStage()
 {
     return IntToStr(RecordIndex+1) + "/" + IntToStr(RecordCount);
 }
-
-
-
 
 

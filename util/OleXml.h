@@ -24,6 +24,8 @@ class OleXml
 private:
 
 public:
+    static const String TRUE_STR_VALUE;
+    static const String FALSE_STR_VALUE;
     OleXml(bool validateOnParse = false);
     ~OleXml();
     void __fastcall LoadXMLFile(const AnsiString& XMLFileName);
@@ -38,12 +40,6 @@ public:
     Variant __fastcall AddAttributeNode(Variant node, const AnsiString& attributeName, const AnsiString& attributeValue);
     void __fastcall SetTextNode(Variant node, const AnsiString& nodeText);
     void __fastcall SetAttributeValue(Variant node, const AnsiString& attributeName, const AnsiString& value);
-
-
-
-
-
-
 
 
     Variant __fastcall GetRootNode() const;
@@ -72,5 +68,8 @@ public:
 private:
     Variant xmlDoc;
 };
+
+const String OleXml::TRUE_STR_VALUE = "true";
+const String OleXml::FALSE_STR_VALUE = "false";
 
 #endif // OLE_XML_H
